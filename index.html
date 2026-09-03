@@ -4,934 +4,157 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
-  <title>Collaborative Drought Analysis · Read Only</title>
-
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css">
-  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js"></script>
-
+  <title>Collaborative Drought Analysis · Available Analyses</title>
   <style>
-  :root {
-    --bg: #181512;
-    --panel: #211c18;
-    --panel-2: #2a231e;
-    --border: #4a3e34;
-    --text: #f4efe9;
-    --muted: #b9aa9b;
-    --accent: #c86f32;
-    --accent-dark: #713719;
-    --green: #78a67f;
-    --amber: #d69a48;
-    --red: #c96358;
-    --d0: #ffff00;
-    --d1: #fcd37f;
-    --d2: #ffaa00;
-    --d3: #e60000;
-    --d4: #730000;
-  }
-
-  * { box-sizing: border-box; }
-  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
-  body {
-    font-family: Roboto, Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-  }
-  button, select, input { font: inherit; }
-  button { cursor: pointer; }
-  button:disabled { cursor: default; opacity: .42; }
-
-  #appShell { height: 100%; display: flex; flex-direction: column; }
-
-  .topbar {
-    height: 68px;
-    flex: 0 0 68px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 0 18px;
-    background: linear-gradient(180deg, #2a211b 0%, #1b1714 100%);
-    border-bottom: 1px solid #4b3d33;
-    box-shadow: 0 4px 16px rgba(0,0,0,.28);
-    z-index: 10;
-  }
-  .brand-group { display: flex; align-items: center; gap: 11px; min-width: 0; }
-  .noaa-mark {
-    width: 42px; height: 42px; flex: 0 0 42px;
-    display: block; object-fit: contain;
-    border: 0; border-radius: 0; background: transparent;
-  }
-  .brand-title { font-size: 17px; font-weight: 850; letter-spacing: .15px; }
-  .brand-subtitle { color: var(--muted); margin-top: 2px; font-size: 12px; }
-  .topbar-controls { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
-  .office-picker { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; }
-  select {
-    border: 1px solid #5a4a3e;
-    color: var(--text);
-    background: #181512;
-    border-radius: 7px;
-    padding: 8px 10px;
-    min-height: 36px;
-  }
-  .segmented { display: flex; background: #171310; border: 1px solid #4d4036; border-radius: 8px; overflow: hidden; }
-  .segment { border: 0; color: #cfc3b8; background: transparent; padding: 9px 15px; font-weight: 800; font-size: 12px; }
-  .segment.active { background: #6f3b21; color: #fff8f1; }
-  .proposal-change-toggle { white-space: nowrap; }
-  .proposal-change-toggle .segment { padding: 9px 12px; }
-  .proposal-change-toggle #changeViewBtn.active { background: #32472e; color: #eef9eb; }
-  .proposal-change-toggle #changeViewBtn.hold-ready { touch-action: none; user-select: none; -webkit-user-select: none; }
-  .usdm-toggle { border: 1px solid #5a4a3e; color: #ede5dc; background: #2c251f; border-radius: 8px; padding: 9px 13px; font-weight: 800; font-size: 12px; }
-  .usdm-toggle.active { background: #6f4925; border-color: #d8a05a; color: #fff1dc; }
-  .cities-toggle { border: 1px solid #5a4a3e; color: #cfc3b8; background: #24201c; border-radius: 8px; padding: 9px 13px; font-weight: 800; font-size: 12px; }
-  .cities-toggle:hover { background: #302923; border-color: #7a6555; color: #f7eee7; }
-  .cities-toggle.active { background: #57343f; border-color: #ff8fb1; color: #fff4f8; }
-  .guide-toggle {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-height: 36px; padding: 8px 12px; border: 1px solid #6b5849;
-    border-radius: 8px; background: #2d2620; color: #f0e7df;
-    text-decoration: none; font-weight: 850; font-size: 12px; white-space: nowrap;
-  }
-  .guide-toggle:hover { background: #3a3028; border-color: #9b7357; color: #fff8f1; }
-  .export-toggle { border: 1px solid #b85e2a; color: #fff2e8; background: #713719; border-radius: 8px; padding: 9px 13px; font-weight: 850; font-size: 12px; }
-  .export-toggle:hover { background: #854321; }
-
-  .workspace { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 300px minmax(0, 1fr); }
-  .sidebar {
-    min-height: 0;
-    overflow-y: auto;
-    padding: 12px;
-    background: #1b1714;
-    border-right: 1px solid #493d34;
-  }
-  .office-card, .panel {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 13px;
-    margin-bottom: 10px;
-  }
-  .eyebrow { color: #9f8d7d; font-size: 10px; font-weight: 900; letter-spacing: .9px; }
-  .office-name { margin-top: 4px; font-size: 20px; font-weight: 900; }
-  .office-meta { margin-top: 2px; color: var(--muted); font-size: 12px; min-height: 16px; }
-  .status-pill { display: inline-flex; margin-top: 10px; border-radius: 999px; padding: 5px 9px; font-size: 10px; font-weight: 900; letter-spacing: .5px; }
-  .status-not-started { background: #3b342e; color: #ddd3ca; }
-  .status-draft { background: #67451f; color: #f6d49d; }
-  .status-submitted { background: #314c38; color: #c8e0cd; }
-
-  .panel h2 { margin: 0; font-size: 13px; font-weight: 900; }
-  .panel-title-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .hidden { display: none !important; }
-
-  .tool-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-  .tool-btn, .draw-cat, .history-row button, .primary-btn, .submit-btn, .quiet-btn, .danger-btn, .icon-btn {
-    border: 1px solid #57483c;
-    border-radius: 7px;
-    background: #2d2620;
-    color: #f3ece5;
-    min-height: 37px;
-    font-weight: 800;
-    font-size: 11px;
-  }
-  .tool-btn { grid-column: 1 / -1; }
-  .tool-btn.active { border-color: var(--accent); background: #43291c; color: #ffe9d8; }
-  .draw-cat { color: #111; text-shadow: 0 1px rgba(255,255,255,.25); }
-  .draw-cat.d0 { background: var(--d0); }
-  .draw-cat.d1 { background: var(--d1); }
-  .draw-cat.d2 { background: var(--d2); }
-  .draw-cat.d3 { background: var(--d3); color: #fff; text-shadow: 0 1px #000; }
-  .draw-cat.d4 { background: var(--d4); color: #fff; text-shadow: 0 1px #000; }
-  .draw-cat.active { outline: 2px solid white; outline-offset: 1px; }
-
-  .neighbor-opacity-control {
-    margin-top: 10px;
-    padding: 9px 10px 8px;
-    border: 1px solid #4d4036;
-    border-radius: 8px;
-    background: #191512;
-  }
-  .neighbor-opacity-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    color: #cfc3b8;
-    font-size: 10px;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: .35px;
-  }
-  .neighbor-opacity-head span { color: #e2a660; font-variant-numeric: tabular-nums; }
-  .neighbor-opacity-control input[type="range"] {
-    width: 100%;
-    margin: 8px 0 2px;
-    accent-color: var(--accent);
-  }
-  .neighbor-opacity-scale {
-    display: flex;
-    justify-content: space-between;
-    color: #897c70;
-    font-size: 9px;
-    font-weight: 800;
-  }
-
-  .usdm-trace-control {
-    margin-top: 8px;
-    padding: 8px;
-    border: 1px solid #4d4036;
-    border-radius: 8px;
-    background: #191512;
-  }
-  .usdm-trace-toggle {
-    width: 100%;
-    min-height: 35px;
-    border: 1px solid #57483c;
-    border-radius: 7px;
-    background: #2d2620;
-    color: #f3ece5;
-    font-size: 10px;
-    font-weight: 900;
-  }
-  .usdm-trace-toggle:hover:not(:disabled) { border-color: #876145; background: #38281f; }
-  .usdm-trace-toggle.active { border-color: #c86f32; background: #43291c; color: #ffe9d8; }
-  .usdm-trace-note { margin-top: 6px; color: #948679; font-size: 9px; line-height: 1.3; text-align: center; }
-  .prior-analyses-toggle {
-    width: 100%;
-    min-height: 34px;
-    margin-top: 9px;
-    border: 1px solid #57483c;
-    border-radius: 7px;
-    background: #24201c;
-    color: #cfc3b8;
-    font-size: 10px;
-    font-weight: 900;
-  }
-  .prior-analyses-toggle:hover { border-color: #7b6655; background: #302923; color: #f7eee7; }
-  .prior-analyses-toggle.active { border-color: #d39a67; background: #493425; color: #fff0df; }
-  .prior-analyses-note { margin: 5px 0 8px; color: #8e8176; font-size: 9px; line-height: 1.3; text-align: center; }
-
-  .selection-panel { margin-top: 10px; padding: 10px; border: 1px solid #55473c; background: #181411; border-radius: 8px; }
-  .selection-title { font-weight: 900; font-size: 11px; margin-bottom: 8px; }
-  .selection-panel label { display: grid; gap: 5px; color: var(--muted); font-size: 10px; font-weight: 800; }
-  .selection-panel select { width: 100%; }
-  .danger-btn { width: 100%; margin-top: 8px; background: #552824; border-color: #8b4b43; }
-  .history-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
-  .save-stack { display: grid; gap: 6px; margin-top: 10px; }
-  .primary-btn { background: #713719; border-color: #b85e2a; }
-  .submit-btn { background: #3c563f; border-color: #6e8f73; }
-  .quiet-btn { background: #332b25; }
-  .panel-note { color: #a49485; font-size: 10px; line-height: 1.45; margin: 10px 0 0; }
-  .dirty-indicator { color: #9f9082; font-size: 10px; font-weight: 900; }
-  .dirty-indicator.dirty { color: #e2a660; }
-
-  .status-summary { color: #d1c6bc; font-size: 11px; margin-bottom: 8px; }
-  .office-status-list { display: grid; gap: 5px; }
-  .office-status-row {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 44px 1fr auto;
-    align-items: center;
-    gap: 7px;
-    border: 1px solid #44382f;
-    border-radius: 7px;
-    background: #191512;
-    color: white;
-    padding: 7px;
-    text-align: left;
-    cursor: pointer;
-    transition: background .15s ease, border-color .15s ease;
-  }
-  .office-status-row:hover { border-color: #73543f; background: #281d17; }
-  .office-status-row.selected { border-color: #c86f32; background: #352319; }
-  .office-status-row.selected:hover { border-color: #df8147; background: #3d291d; }
-  .status-code { font-weight: 900; }
-  .status-detail {
-    min-width: 0;
-    color: #a99b8e;
-    font-size: 10px;
-    overflow: hidden;
-    white-space: nowrap;
-    mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 10px), transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 10px), transparent 100%);
-  }
-  .status-detail-track {
-    display: inline-block;
-    min-width: max-content;
-    transform: translateX(0);
-    will-change: transform;
-  }
-  .office-status-row:hover .status-detail.can-pan .status-detail-track,
-  .office-status-row:focus-visible .status-detail.can-pan .status-detail-track {
-    animation: status-detail-pan var(--status-pan-duration, 3s) linear 0.35s infinite alternate;
-  }
-  @keyframes status-detail-pan {
-    from { transform: translateX(0); }
-    to { transform: translateX(var(--status-pan-distance, 0px)); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .office-status-row:hover .status-detail.can-pan .status-detail-track,
-    .office-status-row:focus-visible .status-detail.can-pan .status-detail-track {
-      animation: none;
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #100e0c;
+      color: #f4efe9;
     }
-  }
-  .status-dot { width: 9px; height: 9px; border-radius: 50%; }
-  .status-dot.NOT_STARTED { background: #7a6d62; }
-  .status-dot.DRAFT { background: #d7903e; }
-  .status-dot.SUBMITTED { background: #7ea384; }
-  .icon-btn { min-width: 33px; min-height: 30px; }
-
-  .legend-panel { padding-bottom: 9px; }
-  .legend-panel h2 { margin-bottom: 9px; }
-  .legend-row { display: grid; grid-template-columns: 22px auto 1fr; align-items: center; gap: 7px; font-size: 10px; color: #d4cac1; margin: 5px 0; }
-  .legend-row strong { min-width: 24px; }
-  .swatch { width: 22px; height: 13px; border: 1px solid rgba(255,255,255,.55); }
-  .swatch.dynamic[style*="#ffffff"] { border-color: rgba(45,45,45,.9); }
-  .swatch.d0 { background: var(--d0); }
-  .swatch.d1 { background: var(--d1); }
-  .swatch.d2 { background: var(--d2); }
-  .swatch.d3 { background: var(--d3); }
-  .swatch.d4 { background: var(--d4); }
-
-  .map-wrap { position: relative; min-width: 0; min-height: 0; background: #3a3733; }
-  #map { position: absolute; inset: 0; }
-  .map-mode-badge {
-    position: absolute; left: 12px; top: 12px; z-index: 5;
-    background: rgba(28,23,19,.90); border: 1px solid #5a4b40; color: #eee5dc;
-    padding: 7px 10px; border-radius: 7px; font-size: 10px; font-weight: 900; letter-spacing: .45px;
-    backdrop-filter: blur(4px);
-  }
-  .usdm-opacity {
-    position: absolute; right: 12px; top: 12px; z-index: 5;
-    display: flex; align-items: center; gap: 8px;
-    background: rgba(28,23,19,.92); border: 1px solid #795332; color: #f0ddc5;
-    padding: 8px 10px; border-radius: 8px; font-size: 10px; font-weight: 800;
-  }
-  .usdm-opacity input { width: 130px; }
-
-
-  .export-overlay {
-    position: absolute; inset: 0; z-index: 15;
-    pointer-events: none; overflow: hidden;
-  }
-  .export-viewfinder {
-    position: absolute;
-    border: 2px solid #d47b3d;
-    box-shadow: 0 0 0 9999px rgba(12, 9, 7, .74), 0 0 0 1px rgba(0,0,0,.75) inset;
-    pointer-events: none;
-  }
-  .export-stamp-preview {
-    position: absolute; left: 12px; bottom: 12px;
-    background: rgba(29,23,19,.88);
-    border: 1px solid rgba(255,255,255,.42);
-    border-radius: 6px; padding: 7px 10px 6px;
-    color: #fff; line-height: 1.18;
-    box-shadow: 0 2px 8px rgba(0,0,0,.35);
-  }
-  .export-stamp-title { font-size: 11px; font-weight: 900; letter-spacing: .2px; }
-  .export-stamp-detail { margin-top: 2px; font-size: 8.5px; font-weight: 800; color: rgba(255,255,255,.82); }
-  .export-legend-preview {
-    position: absolute; right: 12px; top: 12px;
-    min-width: 176px; max-width: 224px;
-    padding: 9px 10px 8px; border: 1px solid rgba(255,255,255,.42); border-radius: 6px;
-    background: rgba(29,23,19,.90); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.35);
-  }
-  .export-legend-title { margin-bottom: 5px; font-size: 8.8px; font-weight: 950; letter-spacing: .35px; text-transform: uppercase; }
-  .export-legend-row { display: grid; grid-template-columns: 20px auto 1fr; align-items: center; gap: 6px; margin: 2.5px 0; font-size: 8.1px; line-height: 1.1; color: rgba(255,255,255,.90); }
-  .export-legend-row .swatch { width: 20px; height: 10px; }
-  .export-legend-row strong { min-width: 18px; }
-  .export-actions {
-    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-    display: flex; align-items: center; gap: 8px;
-    background: rgba(28,23,19,.96); border: 1px solid #5b4a3d;
-    border-radius: 8px; padding: 7px 8px 7px 11px;
-    pointer-events: auto; box-shadow: 0 5px 18px rgba(0,0,0,.42);
-  }
-  .export-hint { color: #c6b8ab; font-size: 10px; font-weight: 750; white-space: nowrap; }
-  .export-cancel, .export-download {
-    border-radius: 6px; min-height: 31px; padding: 6px 10px;
-    font-size: 10px; font-weight: 900;
-  }
-  .export-cancel { border: 1px solid #57493e; color: #dfd5cc; background: #312922; }
-  .export-download { border: 1px solid #b85e2a; color: #fff2e8; background: #713719; }
-  .export-composing .map-mode-badge,
-  .export-composing .usdm-opacity,
-  .export-composing .maplibregl-control-container { opacity: 0; pointer-events: none; }
-
-
-  .entry-overlay {
-    position: fixed; inset: 0; z-index: 100;
-    display: grid; place-items: center;
-    padding: 24px;
-    background: rgba(18, 14, 11, .94);
-    backdrop-filter: blur(8px);
-  }
-  .entry-card {
-    position: relative;
-    overflow: hidden;
-    width: min(430px, 100%);
-    background: #211c18;
-    border: 1px solid #5a493d;
-    border-top: 4px solid #c86f32;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 22px 60px rgba(0,0,0,.42);
-  }
-  .entry-loading-state {
-    position: absolute; inset: 0; z-index: 5;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 11px;
-    min-height: 100%; padding: 24px;
-    background: rgba(33, 28, 24, .97);
-    color: #f1eae3;
-    text-align: center;
-    transition: opacity .14s ease;
-  }
-  .entry-loading-state.hidden { opacity: 0; pointer-events: none; }
-  .entry-spinner { width: 30px; height: 30px; border-width: 3px; }
-  .entry-loading-text {
-    max-width: 280px;
-    color: #d8c8bb;
-    font-size: 11px; font-weight: 850; line-height: 1.35;
-    letter-spacing: .15px;
-  }
-  .entry-kicker {
-    color: #d99055; font-size: 10px; font-weight: 900; letter-spacing: 1.1px;
-  }
-  .entry-card h1 { margin: 6px 0 7px; font-size: 23px; line-height: 1.15; }
-  .entry-copy { margin: 0 0 18px; color: #bdafa2; font-size: 12px; line-height: 1.5; }
-  .entry-field { display: grid; gap: 6px; margin-top: 11px; color: #cdbfb3; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .45px; }
-  .entry-field select { width: 100%; min-height: 42px; font-size: 13px; text-transform: none; letter-spacing: 0; }
-  .entry-open-btn {
-    width: 100%; min-height: 44px; margin-top: 16px; border-radius: 8px;
-    border: 1px solid #c86f32; background: #713719; color: #fff4ea;
-    font-size: 12px; font-weight: 900;
-  }
-  .entry-open-btn:hover { background: #854321; }
-  .entry-guide-link {
-    display: flex; align-items: center; justify-content: center;
-    width: 100%; min-height: 38px; margin-top: 8px;
-    border: 1px solid #55463a; border-radius: 8px;
-    background: #2b241f; color: #ddd1c6;
-    text-decoration: none; font-size: 11px; font-weight: 850;
-  }
-  .entry-guide-link:hover { background: #352c25; border-color: #8a654d; color: #fff1e6; }
-  .entry-user { margin-top: 11px; color: #9f9082; font-size: 10px; text-align: center; }
-  .entry-note { margin: 13px 0 0; padding-top: 12px; border-top: 1px solid #45382f; color: #97887b; font-size: 10px; line-height: 1.45; }
-  .cycle-picker select { min-width: 132px; }
-
-  .confirm-overlay {
-    position: fixed; inset: 0; z-index: 140;
-    display: grid; place-items: center;
-    padding: 24px;
-    background: rgba(16, 12, 9, .74);
-    backdrop-filter: blur(5px);
-  }
-  .confirm-card {
-    width: min(520px, 100%);
-    background: #211c18;
-    border: 1px solid #5a493d;
-    border-top: 4px solid #c86f32;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 22px 60px rgba(0,0,0,.46);
-  }
-  .confirm-kicker {
-    color: #e2a660;
-    font-size: 10px;
-    font-weight: 900;
-    letter-spacing: .9px;
-  }
-  .confirm-card h2 { margin: 5px 0 8px; font-size: 18px; }
-  .confirm-card p { margin: 0; color: #b9aa9b; font-size: 12px; line-height: 1.5; }
-  .confirm-actions {
-    display: grid;
-    grid-template-columns: auto 1fr 1fr;
-    gap: 7px;
-    margin-top: 17px;
-  }
-  .confirm-actions button {
-    min-height: 39px;
-    border-radius: 7px;
-    font-size: 10px;
-    font-weight: 900;
-  }
-  .confirm-stay { border: 1px solid #55483e; background: #2c251f; color: #ded3c9; }
-  .confirm-preview { border: 1px solid #73543f; background: #3a2a20; color: #f1e3d7; }
-  .confirm-save { border: 1px solid #b85e2a; background: #713719; color: #fff4ea; }
-  .confirm-save:hover { background: #854321; }
-  .confirm-preview:hover { background: #463126; }
-  .confirm-stay:hover { background: #352d26; }
-
-  .loading-overlay {
-    position: absolute; inset: 0; z-index: 20;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
-    background: rgba(24,20,17,.86); color: #f1eae3; font-weight: 800; font-size: 12px;
-    backdrop-filter: blur(3px);
-  }
-  .spinner { width: 26px; height: 26px; border: 3px solid #4b4037; border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .toast {
-    position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 25;
-    max-width: min(560px, calc(100% - 30px));
-    background: rgba(27,22,18,.97); border: 1px solid #5b4a3d; color: white;
-    border-radius: 8px; padding: 9px 12px; font-size: 11px; font-weight: 750;
-    opacity: 0; pointer-events: none; transition: opacity .15s ease;
-  }
-  .toast.show { opacity: 1; }
-  .toast.error { border-color: #b95763; background: rgba(70,22,29,.97); }
-
-  .maplibregl-ctrl-attrib { font-size: 9px; }
-  .maplibregl-popup-content { background: #211b17; color: #f4efe9; border: 1px solid #57483c; border-radius: 8px; }
-  .maplibregl-popup-tip { border-top-color: #211b17 !important; }
-
-  @media (max-width: 850px) {
-    .confirm-actions { grid-template-columns: 1fr; }
-    .workspace { grid-template-columns: 240px minmax(0, 1fr); }
-    .brand-subtitle { display: none; }
-    .topbar { padding: 0 10px; }
-    .office-picker span { display: none; }
-    .export-hint { display: none; }
-  }
-</style>  <style>
-    .external-key-overlay {
-      position: fixed; inset: 0; z-index: 10000;
-      display: grid; place-items: center;
-      background: radial-gradient(circle at 50% 20%, #35271f 0%, #181512 46%, #100e0c 100%);
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 28px 16px;
+      background:
+        radial-gradient(circle at 50% 10%, rgba(109,64,37,.30) 0%, rgba(24,21,18,0) 38%),
+        linear-gradient(180deg, #181512 0%, #100e0c 100%);
     }
-    .external-key-card {
-      width: min(430px, calc(100vw - 32px));
-      padding: 24px;
+    .launcher {
+      width: min(620px, 100%);
       border: 1px solid #59493d;
-      border-radius: 14px;
+      border-radius: 16px;
       background: #211c18;
-      box-shadow: 0 22px 70px rgba(0,0,0,.5);
+      box-shadow: 0 24px 80px rgba(0,0,0,.48);
+      overflow: hidden;
     }
-    .external-key-kicker { color: #c86f32; font-size: 10px; font-weight: 900; letter-spacing: 1px; }
-    .external-key-card h1 { margin: 7px 0 16px; font-size: 22px; }
-    .external-key-card label { display: grid; gap: 7px; color: #b9aa9b; font-size: 11px; font-weight: 850; }
-    .external-key-card input {
-      width: 100%; min-height: 43px; padding: 9px 11px;
-      border: 1px solid #5a4a3e; border-radius: 8px;
-      background: #181512; color: #f4efe9;
+    .head { padding: 26px 28px 22px; border-bottom: 1px solid #463a31; }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .brand img { width: 48px; height: 48px; object-fit: contain; }
+    .kicker { color: #c86f32; font-size: 10px; font-weight: 900; letter-spacing: 1.1px; }
+    h1 { margin: 5px 0 0; font-size: 23px; line-height: 1.15; }
+    .sub { margin: 12px 0 0; color: #b9aa9b; font-size: 13px; line-height: 1.5; }
+    .body { padding: 20px 28px 27px; }
+    .section-title { margin: 0 0 10px; color: #d7cbc0; font-size: 11px; font-weight: 900; letter-spacing: .7px; text-transform: uppercase; }
+    .cycle-list { display: grid; gap: 8px; }
+    .cycle-link {
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 10px 13px;
+      border: 1px solid #514238;
+      border-radius: 9px;
+      background: #191613;
+      color: #f4efe9;
+      text-decoration: none;
+      transition: border-color .12s ease, background .12s ease, transform .12s ease;
     }
-    .external-key-card button {
-      width: 100%; min-height: 42px; margin-top: 11px;
-      border: 1px solid #b85e2a; border-radius: 8px;
-      background: #713719; color: #fff2e8; font-weight: 900;
+    .cycle-link:hover, .cycle-link:focus-visible {
+      border-color: #b85e2a;
+      background: #2b211b;
+      transform: translateY(-1px);
+      outline: none;
     }
-    .external-key-error { min-height: 18px; margin-top: 9px; color: #e58c82; font-size: 11px; }
-    .external-key-progress { min-height: 18px; margin-top: 9px; color: #b9aa9b; font-size: 11px; }
-    .external-readonly-badge {
-      display: inline-flex; align-items: center; border-radius: 999px;
-      padding: 4px 8px; background: #314c38; color: #c8e0cd;
-      font-size: 9px; font-weight: 900; letter-spacing: .5px;
+    .cycle-date { font-size: 14px; font-weight: 850; }
+    .cycle-meta { margin-top: 2px; color: #9f9084; font-size: 10px; font-weight: 750; }
+    .open { color: #e09a6d; font-size: 11px; font-weight: 900; white-space: nowrap; }
+    .latest {
+      display: inline-flex;
+      margin-left: 7px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #314c38;
+      color: #c8e0cd;
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: .5px;
+      vertical-align: 1px;
     }
-    .external-meta { color: #a99a8d; font-size: 10px; line-height: 1.45; }
-    .office-status-row.external-selected { outline: 1px solid #c86f32; background: #34271f; }
-    .status-dot.NOT_SUBMITTED { background: #6d625a; }
-    .status-dot.SUBMITTED { background: #78a67f; }
-    .external-top-spacer { flex: 1 1 auto; }
-    @media (max-width: 1050px) {
-      .brand-subtitle { display: none; }
-      .topbar { gap: 8px; padding: 0 10px; }
-      .topbar-controls { gap: 6px; }
-      .segment, .usdm-toggle, .cities-toggle, .export-toggle { padding-left: 9px; padding-right: 9px; }
+    .empty {
+      padding: 16px;
+      border: 1px dashed #514238;
+      border-radius: 9px;
+      color: #a99a8d;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .note { margin: 16px 0 0; color: #8f8176; font-size: 10px; line-height: 1.5; }
+    @media (max-width: 520px) {
+      .head, .body { padding-left: 20px; padding-right: 20px; }
+      .brand img { width: 42px; height: 42px; }
+      h1 { font-size: 20px; }
     }
   </style>
 </head>
 <body>
-  <div id="keyOverlay" class="external-key-overlay">
-    <form id="keyForm" class="external-key-card" autocomplete="off">
-      <div class="external-key-kicker">COLLABORATIVE DROUGHT ANALYSIS</div>
-      <h1>Enter access key</h1>
-      <label>
-        Access key
-        <input id="keyInput" type="password" autocomplete="current-password" spellcheck="false" autofocus>
-      </label>
-      <button id="keySubmit" type="submit">Open viewer</button>
-      <div id="keyProgress" class="external-key-progress"></div>
-      <div id="keyError" class="external-key-error" role="alert"></div>
-    </form>
-  </div>
-
-  <div id="appShell" class="hidden">
-    <header class="topbar">
-      <div class="brand-group">
-        <img class="noaa-mark" src="https://upload.wikimedia.org/wikipedia/commons/f/ff/US-NationalWeatherService-Logo.svg" alt="National Weather Service">
+  <main class="launcher">
+    <section class="head">
+      <div class="brand">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/f/ff/US-NationalWeatherService-Logo.svg" alt="National Weather Service">
         <div>
-          <div class="brand-title">Collaborative Drought Analysis</div>
-          <div id="cycleLabel" class="brand-subtitle">Read-only submitted analysis</div>
+          <div class="kicker">COLLABORATIVE DROUGHT ANALYSIS</div>
+          <h1>Read-Only External Viewer</h1>
         </div>
       </div>
-
-      <div class="topbar-controls">
-        <span class="external-readonly-badge">READ ONLY</span>
-        <div class="segmented proposal-change-toggle" role="group" aria-label="Proposal and USDM change product">
-          <button id="proposalViewBtn" class="segment active" type="button" aria-pressed="true">Current Proposal</button>
-          <button id="changeViewBtn" class="segment" type="button" aria-pressed="false">Change vs USDM</button>
-        </div>
-        <button id="usdmToggleBtn" class="usdm-toggle" type="button" aria-pressed="false">Current USDM</button>
-        <button id="citiesToggleBtn" class="cities-toggle active" type="button" aria-pressed="true">Cities</button>
-        <button id="exportBtn" class="export-toggle" type="button">Export PNG</button>
-      </div>
-    </header>
-
-    <div class="workspace">
-      <aside class="sidebar">
-        <section class="office-card">
-          <div class="eyebrow">PUBLISHED CYCLE</div>
-          <div id="publishedCycle" class="office-name">—</div>
-          <div id="publishedAt" class="office-meta"></div>
-          <div id="submissionSummary" class="status-pill status-submitted">—</div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-title-row"><h2>Tuesday status</h2></div>
-          <div id="statusSummary" class="status-summary"></div>
-          <div id="officeStatusList" class="office-status-list"></div>
-          <p class="panel-note">Only explicitly submitted office analyses are published. An office that has not submitted for this Tuesday remains blank.</p>
-        </section>
-
-        <section class="panel legend-panel">
-          <h2 id="legendTitle">Drought categories</h2>
-          <div id="legendRows"></div>
-        </section>
-
-        <section class="panel">
-          <div class="external-meta">This read-only snapshot contains no editor identity or draft metadata. Submitted polygon data is encrypted in the page and decrypted locally after the access key is entered.</div>
-        </section>
-      </aside>
-
-      <main class="map-wrap">
-        <div id="map"></div>
-        <div id="mapModeBadge" class="map-mode-badge">READ ONLY · SUBMITTED ANALYSES</div>
-        <div id="usdmOpacityPanel" class="usdm-opacity hidden">
-          <label for="usdmOpacity">Current USDM opacity</label>
-          <input id="usdmOpacity" type="range" min="0.2" max="1" step="0.05" value="0.72">
-        </div>
-
-        <div id="exportOverlay" class="export-overlay hidden" aria-label="PNG export composition viewport">
-          <div id="exportViewfinder" class="export-viewfinder">
-            <div class="export-stamp-preview" aria-hidden="true">
-              <div id="exportStampTitle" class="export-stamp-title">PROPOSED DROUGHT UPDATES</div>
-              <div id="exportStampDetail" class="export-stamp-detail">Tue --/--/--</div>
-            </div>
-            <div id="exportLegendPreview" class="export-legend-preview" aria-hidden="true"></div>
-          </div>
-          <div class="export-actions">
-            <span class="export-hint">Pan / zoom the map to compose the fixed 1350×759 viewport</span>
-            <button id="exportCancelBtn" class="export-cancel" type="button">Close</button>
-            <button id="exportDownloadBtn" class="export-download" type="button">Download PNG</button>
-          </div>
-        </div>
-
-        <div id="loadingOverlay" class="loading-overlay hidden">
-          <div class="spinner"></div>
-          <div id="loadingText">Loading read-only drought viewer…</div>
-        </div>
-        <div id="toast" class="toast" role="status" aria-live="polite"></div>
-      </main>
-    </div>
-  </div>
+      <p class="sub">Choose an available Tuesday analysis. The access key is requested only after you open the selected map.</p>
+    </section>
+    <section class="body">
+      <div class="section-title">Available analyses</div>
+      <div id="cycleList" class="cycle-list"></div>
+      <p class="note">Only Tuesdays with at least one successfully published submission appear here.</p>
+    </section>
+  </main>
 
 <script>
-const PUBLISHED_ENVELOPE = {"iv":"MU+KQyG0JMI3sXcF","kdf":"PBKDF2-SHA256","iterations":310000,"v":1,"ciphertext":"j44vXlxffdHze7FF8kRKqu+QX5Nr7vrLnOS3sVo6mzvrUnP3F3Gch5Df3ZZ0tYvJp8oON5D+kqTVbj22UAxSHGPzn/vlp+QDUH5Ih+503qWZ+cp0dXEi6iL/vUEeCJoWikN2ajhidXQYoogmxYYlABLC/FF+muyWU8P+rwAutr3OhZ62nQdcj/3lftjN8uwH31RW4T2lJ1K9fyPUoT7KwsMadGI77ypgD51AyR0smG5mooo0UL0rv1/GTxQ2MmaEu0tDbgJVa8olEWES9c7teCeyS+XOY0JvHz/ahWxjf1OrzkU+DHfLYzTDM2QLwmfZKD/a67pnYZf9Z5HuuMWM6IDygRH6LcNGy8swmbalq8KtOy5U2PoSq48cxhxUGhS3k5ssFdvQkTN96viEcSyNTige49++WG3MsimwJv7orgu5JlDFCoSFHlPG2QfVrGa1b8TwLqnNAC2F1KbDXldcFGiBZDTRkVtMros2rpurDOpDDQxqzfhfoB1j0wEydTMepEpxTDRr305irzAKzPUTHq8wEnksf7/GVKHkcj1GfU7ghSTGOVT/teF2sqpvWcVKK+oBoUac+v0ODlnrX18gztRQqPYMGMuq0wwf3hpMGJem7stFu1hnBYFgNYqvFTXmM+AM1daNWWfoWGLGjTOCQV0k3lvitAc02Laso+B+oJMzPm/u+7Q9D7E8Rot4RQkGoXRFLtnOJk5Q4g8kEzTgSJWZ8b4Ws/PjJSZvVhjQTU5fuCVo89pGij+klKecGERpVxRl3FVnmQDKcUMJHow/LKY/hUt5EeswWHK+xBW0W8AlrUuTqAQeK5TyzWjkFJ93g6xTizLxuX9Y5Hqu8a26Ktnnp8w5B2yw3O0KZjl2YyZpt9b0pDXxaE8RxQvyXpsI1synyRqXmEBy8vSGCIkBFUa72N/GW1TW/qs+P+1weBrpxmjCTt7QoRszFy+KZl1LeK+htY9STukpKgKVrLmAX+zuw72HWx7JaOk3cS/jty/zPNEQ3cny2hh6GtiNs/zP4m7gSa0AkvlZPFyAdpg1+ErgCO6pTyooMhT3UAR9ph+DDKCbVJ0jvw5j2i9l3Nptic85ragHHLj/adJQ+9NVILv3cOwuN/NGI8LdUuqLA9JuoVLs5yIuW+Nt7wYNOO8+fpn2oMffQN2YROW6BNjglKkbv1LM+wd47bc+WUXkiHuVyuEl2akqoWez+k21p81zbSbyJUxwNXqsJiPFesBtsiQNDECNlQyL8YvY2nG6VLnht3HIER+Le94YA8NKQXh6PSGwPCuc/hAXwSoYtEaYAmKHVgN4+pnR+kxq572CS/Qg/36d+RsPnRkW7cWtk/Foht+MBypOJiCWlt5Rr5f2u1lIt1UZ6yb2QfbwnlWXuY2HfkwcZbqgA/8zcJgp4SOtsQPHwXO4WAxt+6L4z4ivGokFf4O4nzapEvSlaJ6dmHL2bTbaxS+Q5hNSjAK02yAdcQXcPJdr4kSfOfAH2yMYKZHIfO/3O+7iq7h26YF83yNXBvmibth7yYBuoVQXGRX/BxWP8vmJVc3psSqnXiL/tkTtAQwODc9y3jw+RuKRBaQPesvvkVsUmQPryU29WYVe3RfrtflNIKdNSkcm6pcJiNq+LkNhz5MMBVd03eAD52/lPFn+cAmo7gHAg5zkHHCOTs4QhkCT8vgHp43bfPLdveTnk1C4gcExHk6YwCh194fjaWulT2gI0DnC4e44gkrp3hX8wqpTP0IgtI7jxI+yM93+FNahc7PWsCAk5kZXPdoF278venOzZ+cU8GSZJTe3TndAzKmwwUxL06slM+jr++QtkNBZCdD19StofOEQ5VCWfUVzLzypVMAycb+BRxvQG+BPtf2neqyW4gbTRhTlj+mHF1YP7tlvlb8bjfCQFzQJrNUPUMo34WO4pI1XEjifT/TNC5hV6i8FCu9p4/9Yqkpc9X05l6j9QknBclJixMCnnnh6HGanHOwCzfkoykeUF+5DO2npwRyjbh/7TryWDUwl4EgoDtBK2dTL5ylgdG19CWo7OR58MWxC4rv1pUc+tR6nMbTfiKBejIZFLQQmN4o3BITAKt6sNaqA5haxAC7nklSS1wafF4NGcGmaivDavSlpBqG5sr4yh0Y1CIv5dts+I1YBIabraUAUWC9FbgCCgILlL7QOsvjfwJ6HalB7zfB31bWLLj2Ydmcgkm8H1fots9x4Xjy2CKwvOVtZZ1JBas7UQ2MeBgqcGLhfgFDY/7EHauTDe7yBglrvZi8gSP89462Y2rWQsxi25VPkMI7Abt9IHGYCMLRhxUXJ8Xlb7qp3MGh1kvMHV2/NrWc7M5eKYDHPiKgbXq6pL9aH7qOQ6FlwKbHMvrpcBaayFLD3I5R7Em6O4rZVtQ6Us1TJEaLZiw+xQbNHVizKg0KnzYZZ9Tl+9vjIl/5iNCGlOuvpay5sfEuZBt+oGTE3FeGHRjgCEZrK3h8YesbF8ouANLrGfphfPKGTUVD+MVdvUxD7afbeUbxu7kRgB/pdiwVCVQmWISqr7vf/n8d2mnzyWKWKJmiAfgRgwvzHHxpv24zo1NnL+666A8Su1olmLKqw+ktJe6nY0gasbLCQSEsTaPHn96f3bJGnEDyu8t2H4fLsCn2AGtaJ4jgqgwQcXpLH+7b/8S4rxtwsjI1B/YreUJK/wxksFrM3DsftoSBh1bpQTkIrlRSLjx0CAbLAr1cBbVlcjUgMzAy40QS0ckBG0tEGyzYX/hgm9twa3plggraZf+MqIgl8mmOEnjJdI8/ryon/agqxoTM9QN4QgEv5Ke4GplwQLEE2YCCDRYb32Qegdv7TXm8V2N/ufrXV9YsIOzjOU1TgTgbnKtnixt7HoXE+smJaAQ1PX8XU1PtIv6ADDTzqlIX+YGYD2pplTD+8YUwNu2ZwrD1srY+yvr5MXnXAHUWzRjI5d1BY8dChXn8k3HtarxsrEMpsmg8bo77NFqZb8TBCoBldtO6f550L2XtTFdy67qxsGhUAfaIud8uCPFUPZs6GqblIrpgq8qQ4aR7E/M+y4ESYn/IP0mWSDEVlAg6py0pmMKMM8uqI5k4EvSKSAEoEEnemed6MqpTKaFAG1GvfitxlGjw9eB+2azMPbCunyakQc4jjbfYL729ya0QPrPV+cEjnZ+ePW5ZfmZdcN3Hli09Ja5cwUI1FHAM4P6l69lJn6N2PLroRC6UFGPLAWxg/h7md8NKGHuS2Eg9Gu5df5X473rFr+/SKrhKYk5zWt8ruHyp1DOXHgkYMEoSCXA17","cipher":"AES-256-GCM","salt":"UjQNnzcNHbaiylaRw/nB7w=="};
+const AVAILABLE_CYCLES = ["2026-09-01"];
 
+function formatCycleDate(value) {
+  const parts = String(value || '').split('-').map(Number);
+  if (parts.length !== 3 || parts.some(part => !Number.isFinite(part))) return String(value || '');
+  const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 12));
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC'
+  }).format(date);
+}
 
+const list = document.getElementById('cycleList');
+if (!Array.isArray(AVAILABLE_CYCLES) || !AVAILABLE_CYCLES.length) {
+  list.innerHTML = '<div class="empty">No submitted analyses have been published yet.</div>';
+} else {
+  AVAILABLE_CYCLES.forEach((cycle, index) => {
+    const link = document.createElement('a');
+    link.className = 'cycle-link';
+    link.href = `${encodeURIComponent(cycle)}.html`;
 
+    const left = document.createElement('div');
+    const date = document.createElement('div');
+    date.className = 'cycle-date';
+    date.textContent = formatCycleDate(cycle);
+    if (index === 0) {
+      const badge = document.createElement('span');
+      badge.className = 'latest';
+      badge.textContent = 'LATEST';
+      date.appendChild(badge);
+    }
+    const meta = document.createElement('div');
+    meta.className = 'cycle-meta';
+    meta.textContent = cycle;
+    left.append(date, meta);
 
-const FL_REFERENCE_BBOX = '-88.7,23.0,-79.0,32.5';
-const NWS_REFERENCE_FEATURE_BASE = 'https://mapservices.weather.noaa.gov/static/rest/services/nws_reference_maps/nws_reference_map/FeatureServer';
+    const open = document.createElement('span');
+    open.className = 'open';
+    open.textContent = 'View Analysis →';
 
-function nwsReferenceQueryUrl(layerId, outFields) {
-  const params = new URLSearchParams({
-    where: '1=1',
-    geometry: FL_REFERENCE_BBOX,
-    geometryType: 'esriGeometryEnvelope',
-    inSR: '4326',
-    spatialRel: 'esriSpatialRelIntersects',
-    outFields,
-    returnGeometry: 'true',
-    outSR: '4326',
-    geometryPrecision: '5',
-    f: 'geojson'
+    link.append(left, open);
+    list.appendChild(link);
   });
-  return `${NWS_REFERENCE_FEATURE_BASE}/${layerId}/query?${params.toString()}`;
 }
-
-const CWA_URL = nwsReferenceQueryUrl(1, 'cwa,wfo,lon,lat,region,city,state,st');
-const COUNTIES_URL = nwsReferenceQueryUrl(2, 'state');
-const STATES_URL = nwsReferenceQueryUrl(3, 'state');
-const OPENFREEMAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
-const PLACES_URL = 'https://r2assets.jhwxtools.com/assets/desi_places.geojson';
-const HAMLETS_URL = 'https://r2assets.jhwxtools.com/assets/hamlets_fl.geojson';
-const USDM_CHANGE_GEO_ORIGINAL_BASE_URL = 'https://www.ncei.noaa.gov/pub/data/nidis/geojson/us/usdm/historical/usdm-geojson/geo-original';
-
-const CATEGORY_COLORS = Object.freeze({ D0:'#ffff00', D1:'#fcd37f', D2:'#ffaa00', D3:'#e60000', D4:'#730000' });
-const CATEGORIES = Object.keys(CATEGORY_COLORS);
-const CHANGE_BOUNDARY_TOLERANCE_MILES = 1;
-const CHANGE_GRID_TARGET_MILES = 0.33;
-const CHANGE_GRID_MAX_PIXELS = 1200000;
-const CHANGE_GRID_MAX_DIMENSION = 2048;
-const CHANGE_TRANSPARENT_PIXEL_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg==';
-const EXPORT_WIDTH = 1350;
-const EXPORT_HEIGHT = 759;
-const EXPORT_SCALE = 2;
-const DISPLAY_SMOOTHING = Object.freeze({ enabled:true, samplesPerSegment:4, tension:0.35 });
-
-const CHANGE_COLORS = Object.freeze({
-  improve5:'#003d75', improve4:'#016678', improve3:'#359766', improve2:'#8ad48c', improve1:'#ccffd4',
-  same:'#cccccc', degrade1:'#ffff73', degrade2:'#ffd438', degrade3:'#ff9900', degrade4:'#a87000', degrade5:'#543005', none:'#ffffff'
-});
-const DROUGHT_LEGEND = Object.freeze([
-  {color:CATEGORY_COLORS.D0,code:'D0',label:'Abnormally Dry'},
-  {color:CATEGORY_COLORS.D1,code:'D1',label:'Moderate Drought'},
-  {color:CATEGORY_COLORS.D2,code:'D2',label:'Severe Drought'},
-  {color:CATEGORY_COLORS.D3,code:'D3',label:'Extreme Drought'},
-  {color:CATEGORY_COLORS.D4,code:'D4',label:'Exceptional Drought'}
-]);
-const CHANGE_LEGEND = Object.freeze([
-  {color:CHANGE_COLORS.improve5,label:'5 categories of improvement'},
-  {color:CHANGE_COLORS.improve4,label:'4 categories of improvement'},
-  {color:CHANGE_COLORS.improve3,label:'3 categories of improvement'},
-  {color:CHANGE_COLORS.improve2,label:'2 categories of improvement'},
-  {color:CHANGE_COLORS.improve1,label:'1 category of improvement'},
-  {color:CHANGE_COLORS.same,label:'No change'},
-  {color:CHANGE_COLORS.degrade1,label:'1 category of degradation'},
-  {color:CHANGE_COLORS.degrade2,label:'2 categories of degradation'},
-  {color:CHANGE_COLORS.degrade3,label:'3 categories of degradation'},
-  {color:CHANGE_COLORS.degrade4,label:'4 categories of degradation'},
-  {color:CHANGE_COLORS.degrade5,label:'5 categories of degradation'},
-  {color:CHANGE_COLORS.none,label:'No drought'}
-]);
-
-const dom = Object.fromEntries([
-  'keyOverlay','keyForm','keyInput','keySubmit','keyProgress','keyError','appShell','cycleLabel','publishedCycle','publishedAt','submissionSummary',
-  'proposalViewBtn','changeViewBtn','usdmToggleBtn','citiesToggleBtn','exportBtn','statusSummary','officeStatusList','legendTitle','legendRows',
-  'mapModeBadge','usdmOpacityPanel','usdmOpacity','loadingOverlay','loadingText','toast','exportOverlay','exportViewfinder','exportStampTitle',
-  'exportStampDetail','exportLegendPreview','exportCancelBtn','exportDownloadBtn'
-].map(id => [id, document.getElementById(id)]));
-
-const state = {
-  payload:null, records:new Map(), participants:[], analysisRaw:{type:'FeatureCollection',features:[]},
-  cwas:null, cwaByWfo:new Map(), clipCwaByWfo:new Map(), displayByWfo:new Map(), selectedWfo:'',
-  changeView:false, changeLoading:false, changeImageObjectUrl:'', changeWaterRestoreBeforeId:'', usdm:false, citiesVisible:true,
-  usdmChangeCache:new Map(), popup:null, toastTimer:null, exporting:false, exportProduct:null, exportRestore:null
-};
-let map = null;
-
-function base64ToBytes(text) {
-  const binary = atob(String(text || ''));
-  const bytes = new Uint8Array(binary.length);
-  for (let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
-  return bytes;
-}
-
-async function decryptPublishedPayload(secret) {
-  if (!window.crypto || !window.crypto.subtle) throw new Error('This browser does not support Web Crypto.');
-  const env = PUBLISHED_ENVELOPE || {};
-  if (env.v !== 1 || env.kdf !== 'PBKDF2-SHA256' || env.cipher !== 'AES-256-GCM') throw new Error('Unsupported published viewer format.');
-  const encoder = new TextEncoder();
-  const baseKey = await crypto.subtle.importKey('raw', encoder.encode(String(secret || '')), 'PBKDF2', false, ['deriveKey']);
-  const key = await crypto.subtle.deriveKey(
-    {name:'PBKDF2',salt:base64ToBytes(env.salt),iterations:Number(env.iterations),hash:'SHA-256'},
-    baseKey,{name:'AES-GCM',length:256},false,['decrypt']
-  );
-  const plain = await crypto.subtle.decrypt({name:'AES-GCM',iv:base64ToBytes(env.iv)}, key, base64ToBytes(env.ciphertext));
-  return JSON.parse(new TextDecoder().decode(plain));
-}
-
-function decodePublishedTopology(payload) {
-  if (!payload || payload.schemaVersion !== 2 || payload.dataEncoding !== 'topojson') throw new Error('Published data is not the expected TopoJSON viewer format.');
-  const topology = payload.analysisTopology;
-  if (!topology || topology.type !== 'Topology' || !topology.objects || !topology.objects.analysis) throw new Error('Published TopoJSON analysis is missing.');
-  const fc = topojson.feature(topology, topology.objects.analysis);
-  return fc && fc.type === 'FeatureCollection' ? fc : {type:'FeatureCollection',features:[]};
-}
-
-async function unlockViewer(secret) {
-  dom.keyError.textContent=''; dom.keyProgress.textContent='Decrypting…'; dom.keySubmit.disabled=true;
-  try {
-    const payload = await decryptPublishedPayload(secret);
-    const analysis = decodePublishedTopology(payload);
-    state.payload = payload;
-    state.analysisRaw = analysis;
-    state.participants = Array.isArray(payload.participants) ? payload.participants.map(v=>String(v).toUpperCase()) : [];
-    state.records = new Map((payload.records || []).map(record => [String(record.wfo || '').toUpperCase(), record]));
-    dom.keyProgress.textContent='Loading map…';
-    await initializeViewer();
-    dom.keyOverlay.classList.add('hidden');
-    dom.appShell.classList.remove('hidden');
-    requestAnimationFrame(()=>map.resize());
-  } catch (error) {
-    console.error(error);
-    dom.keyError.textContent = 'Access key is incorrect or this viewer file is invalid.';
-    dom.keyProgress.textContent='';
-    dom.keyInput.select();
-  } finally { dom.keySubmit.disabled=false; }
-}
-
-dom.keyForm.addEventListener('submit', event => { event.preventDefault(); unlockViewer(dom.keyInput.value); });
-
-async function fetchJson(url, optional=false) {
-  try { const response=await fetch(url,{cache:'force-cache'}); if(!response.ok) throw new Error(`HTTP ${response.status}`); return await response.json(); }
-  catch(error){ if(optional) return {type:'FeatureCollection',features:[]}; throw new Error(`Failed to load ${url}: ${error.message}`); }
-}
-function mapLoaded(){ if(map.loaded()) return Promise.resolve(); return new Promise(resolve=>map.once('load',resolve)); }
-function setLoading(visible,text='Loading…'){ dom.loadingText.textContent=text; dom.loadingOverlay.classList.toggle('hidden',!visible); }
-function showToast(message,isError=false,duration=4500){ clearTimeout(state.toastTimer); dom.toast.textContent=message; dom.toast.classList.toggle('error',!!isError); dom.toast.classList.add('visible'); state.toastTimer=setTimeout(()=>dom.toast.classList.remove('visible'),duration); }
-function escapeHtml(value){ return String(value??'').replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch])); }
-function normalizeCategory(value){ const c=String(value||'').toUpperCase(); return CATEGORIES.includes(c)?c:'D0'; }
-
-async function initializeViewer(){
-  dom.appShell.classList.remove('hidden');
-  map = new maplibregl.Map({container:'map',style:OPENFREEMAP_STYLE,center:[-98.35,39.5],zoom:3.4,pitch:0,bearing:0,canvasContextAttributes:{preserveDrawingBuffer:true},attributionControl:{compact:false}});
-  map.addControl(new maplibregl.NavigationControl({showCompass:false}),'bottom-right');
-  setLoading(true,'Loading reference geography…');
-  const [cwas] = await Promise.all([fetchJson(CWA_URL),mapLoaded()]);
-  state.cwas=normalizeCwas(cwas);
-  state.cwaByWfo=new Map(state.cwas.features.map(f=>[f.properties.wfo,f]));
-  state.clipCwaByWfo=new Map(state.cwas.features.map(f=>[f.properties.wfo,prepareCwaForClip(f)]));
-  await buildBaseReferenceMap();
-  setupAnalysisLayers(); setupChangeLayer(); setupCwaLayers(); setupCurrentUsdmLayer(); raiseReferenceLayers();
-  prepareSubmittedDisplay(); renderComposite(); bindViewerUi(); updateDashboard(); updateLegendPresentation(); updateCitiesVisibility(); applyAnalysisViewVisibility();
-  fitParticipatingOffices(false);
-  setLoading(false);
-  preloadChangeSourceData(state.payload.cycleDate);
-}
-
-function normalizeCwas(data){
-  const features=(data&&data.features?data.features:[]).filter(f=>f&&f.geometry).map(f=>{const p=f.properties||{};const wfo=String(p.wfo||p.cwa||'').trim().toUpperCase();return {...f,properties:{...p,wfo,cwa:String(p.cwa||wfo).trim().toUpperCase()}};}).filter(f=>/^[A-Z]{3}$/.test(f.properties.wfo));
-  return {type:'FeatureCollection',features};
-}
-function prepareCwaForClip(feature){ try{return turf.simplify(turf.cleanCoords(feature,{mutate:false}),{tolerance:.00002,highQuality:false,mutate:false});}catch(_){return feature;} }
-
-async function buildBaseReferenceMap(){
-  applyMajorMapTreatment();
-  const [counties,states,places,hamlets]=await Promise.all([fetchJson(COUNTIES_URL),fetchJson(STATES_URL),fetchJson(PLACES_URL),fetchJson(HAMLETS_URL,true)]);
-  map.addSource('ref-counties',{type:'geojson',data:counties});
-  map.addLayer({id:'ref-county-lines-casing',type:'line',source:'ref-counties',minzoom:5,layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#000000','line-width':4.2,'line-opacity':['interpolate',['linear'],['zoom'],5,0,6,.38,6.6,.52,7,1,9,1]}});
-  map.addLayer({id:'ref-county-lines',type:'line',source:'ref-counties',minzoom:5,layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#ffffff','line-width':1.6,'line-opacity':['interpolate',['linear'],['zoom'],5,0,6,.25,6.6,.35,7,.72,9,.72]}});
-  map.addSource('ref-states',{type:'geojson',data:states});
-  map.addLayer({id:'ref-state-lines-casing',type:'line',source:'ref-states',maxzoom:11,layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#000000','line-width':['interpolate',['linear'],['zoom'],0,5,4,6,6,6.7,9,5.5,9.5,0],'line-opacity':1}});
-  map.addLayer({id:'ref-state-lines',type:'line',source:'ref-states',maxzoom:11,layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#ffffff','line-width':['interpolate',['linear'],['zoom'],0,2.5,4,3.5,6,4.2,9,3,9.5,0],'line-opacity':.9}});
-  const merged=buildPlaceCollection(places,hamlets); map.addSource('ref-places',{type:'geojson',data:merged});
-  map.addLayer({id:'ref-place-labels',type:'symbol',source:'ref-places',layout:{'text-field':['get','name'],'text-font':['Noto Sans Bold'],'text-padding':10,'text-variable-anchor':['center'],'text-allow-overlap':false,'symbol-sort-key':['-',10000000,['coalesce',['get','priority'],0]],'text-size':['step',['zoom'],['case',['>=',['get','priority'],150000],22,0],5,['case',['>',['get','priority'],50000],19,0],7,['case',['>',['get','priority'],50000],19,['>',['get','priority'],25000],17,0],8,['case',['>',['get','priority'],50000],20,['>',['get','priority'],25000],18,['>',['get','priority'],10000],16,['>',['get','priority'],5000],14,0],9,['interpolate',['linear'],['get','priority'],0,13,5000,14,10000,16,25000,18,50000,20,200000,24]]},paint:{'text-color':'rgba(250,250,250,1)','text-halo-color':'rgba(15,23,42,1)','text-halo-width':2.5}});
-}
-function applyMajorMapTreatment(){ const style=map.getStyle(); (style.layers||[]).forEach(layer=>{const id=layer.id.toLowerCase();const suppress=id.includes('road')||id.includes('bridge')||id.includes('tunnel')||id.includes('highway')||id.includes('label')||id.includes('waterway')||id.includes('rail')||id.includes('airport')||id.includes('boundary')||id.includes('transit');if(suppress) map.setLayoutProperty(layer.id,'visibility','none');}); if(map.getLayer('background')) map.setPaintProperty('background','background-color','#3a3733'); if(map.getLayer('water')) map.setPaintProperty('water','fill-color','#282b2c'); if(map.getLayer('park_nature_reserve')) map.setPaintProperty('park_nature_reserve','fill-color','#38362f'); if(map.getLayer('park')) map.setPaintProperty('park','fill-color','#38362f'); if(map.getLayer('landuse_residential')) map.setPaintProperty('landuse_residential','fill-color','#373737'); if(map.getLayer('landcover_wood')) map.setPaintProperty('landcover_wood','fill-color','#363d39'); }
-function buildPlaceCollection(placesData,hamletsData){ const best=new Map(); const add=feature=>{if(!feature||!feature.geometry||feature.geometry.type!=='Point')return;const p=feature.properties||{};const name=String(p.name||'Unnamed').replace(/[*]|\s*\(.*?\)/g,'').trim();const stateCode=String(p.state||'').trim();const geoid=String(p.geoid||'').trim();const priority=Number(p.population||0)||0;const key=`${name.toLowerCase()}_${stateCode.toLowerCase()}_${geoid}`;const prev=best.get(key);if(!prev||priority>prev.properties.priority)best.set(key,{type:'Feature',properties:{name,priority,geoid},geometry:{type:'Point',coordinates:feature.geometry.coordinates}});};(placesData.features||[]).forEach(add);(hamletsData.features||[]).forEach(add);return {type:'FeatureCollection',features:[...best.values()]}; }
-
-function setupAnalysisLayers(){ map.addSource('analysis-composite',{type:'geojson',data:{type:'FeatureCollection',features:[]}}); CATEGORIES.forEach(category=>map.addLayer({id:`analysis-fill-${category}`,type:'fill',source:'analysis-composite',filter:['==',['get','category'],category],paint:{'fill-color':CATEGORY_COLORS[category],'fill-opacity':1}})); }
-function addStaticChangeImageSource(sourceId,layerId){ map.addSource(sourceId,{type:'image',url:CHANGE_TRANSPARENT_PIXEL_URL,coordinates:[[-1,1],[1,1],[1,-1],[-1,-1]]}); map.addLayer({id:layerId,type:'raster',source:sourceId,layout:{visibility:'none'},paint:{'raster-opacity':1,'raster-fade-duration':0,'raster-resampling':'nearest'}}); }
-function setupChangeLayer(){ addStaticChangeImageSource('drought-change','drought-change-layer'); rememberChangeWaterLayerOrder(); }
-function rememberChangeWaterLayerOrder(){ if(!map.getLayer('water'))return;const layers=(map.getStyle()&&map.getStyle().layers)||[];const index=layers.findIndex(l=>l.id==='water');state.changeWaterRestoreBeforeId=index>=0&&index+1<layers.length?layers[index+1].id:''; }
-function isChangeRasterVisible(){ return state.exporting?state.exportProduct==='change':state.changeView&&!state.usdm; }
-function updateChangeWaterLayerOrder(){ if(!map.getLayer('water'))return;if(isChangeRasterVisible()){if(map.getLayer('ref-county-lines-casing'))map.moveLayer('water','ref-county-lines-casing');else map.moveLayer('water');raiseReferenceLayers();return;}const before=state.changeWaterRestoreBeforeId;if(before&&map.getLayer(before))map.moveLayer('water',before);else map.moveLayer('water'); }
-
-function setupCwaLayers(){
-  map.addSource('cwa-reference',{type:'geojson',data:state.cwas});
-  map.addLayer({id:'cwa-reference-lines',type:'line',source:'cwa-reference',paint:{'line-color':'#ddd5cc','line-width':1,'line-opacity':.34}});
-  const participantFilter=['match',['get','wfo'],state.participants,true,false];
-  map.addLayer({id:'cwa-preview-casing',type:'line',source:'cwa-reference',filter:participantFilter,layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#000000','line-width':5,'line-opacity':.9}});
-  map.addLayer({id:'cwa-preview-line',type:'line',source:'cwa-reference',filter:participantFilter,layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#ff8fb1','line-width':2.5,'line-opacity':1}});
-  map.addLayer({id:'cwa-active-line',type:'line',source:'cwa-reference',filter:['==',['get','wfo'],'__NONE__'],paint:{'line-color':'#c86f32','line-width':3.2,'line-opacity':1}});
-  map.on('click','cwa-preview-line',event=>{const f=event.features&&event.features[0];if(!f)return;selectWfo(String(f.properties.wfo||''),false);const record=state.records.get(String(f.properties.wfo||''));if(state.popup)state.popup.remove();state.popup=new maplibregl.Popup({closeButton:true}).setLngLat(event.lngLat).setHTML(`<strong>${escapeHtml(f.properties.wfo)}</strong><br><span style="color:#b9aa9b">${escapeHtml(externalStatusDetail(record))}</span>`).addTo(map);});
-}
-function setupCurrentUsdmLayer(){ map.addSource('current-usdm',{type:'raster',tiles:['https://ndmcgeodata.unl.edu/cgi-bin/mapserv.exe?map=/ms4w/apps/usdm/map/usdm_current_wms.map&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=usdm_current&STYLES=default&FORMAT=image/png&TRANSPARENT=TRUE&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}'],tileSize:256,attribution:'NDMC/NOAA/USDA'}); const before=map.getLayer('ref-county-lines-casing')?'ref-county-lines-casing':undefined; map.addLayer({id:'current-usdm-layer',type:'raster',source:'current-usdm',layout:{visibility:'none'},paint:{'raster-opacity':Number(dom.usdmOpacity.value),'raster-fade-duration':150}},before); }
-function raiseReferenceLayers(){ ['ref-county-lines-casing','ref-county-lines','ref-state-lines-casing','ref-state-lines','cwa-reference-lines','cwa-preview-casing','cwa-preview-line','cwa-active-line','ref-place-labels'].forEach(id=>{if(map.getLayer(id))map.moveLayer(id);}); }
-
-function prepareSubmittedDisplay(){
-  const rawByWfo=new Map(state.participants.map(wfo=>[wfo,{type:'FeatureCollection',features:[]} ]));
-  (state.analysisRaw.features||[]).forEach(feature=>{const wfo=String(feature.properties&&feature.properties.wfo||'').toUpperCase();if(rawByWfo.has(wfo))rawByWfo.get(wfo).features.push(feature);});
-  state.displayByWfo.clear();
-  state.participants.forEach(wfo=>{const record=state.records.get(wfo);if(!record||record.status!=='SUBMITTED'){state.displayByWfo.set(wfo,[]);return;}state.displayByWfo.set(wfo,renderOfficeForDisplay(rawByWfo.get(wfo),wfo));});
-}
-function renderOfficeForDisplay(raw,wfo){ const cwa=state.clipCwaByWfo.get(wfo)||state.cwaByWfo.get(wfo);if(!cwa)return[];const output=[];(raw&&raw.features?raw.features:[]).forEach(feature=>{const display=smoothFeatureForDisplay(feature);const clipped=clipToCwa(display,cwa);if(!clipped)return;clipped.properties={category:normalizeCategory(feature.properties&&feature.properties.category),wfo};output.push(clipped);});return output; }
-function renderComposite(){ const output=[];getSubmittedWfos().forEach(wfo=>output.push(...(state.displayByWfo.get(wfo)||[])));map.getSource('analysis-composite').setData({type:'FeatureCollection',features:output}); }
-function smoothFeatureForDisplay(feature){ if(!DISPLAY_SMOOTHING.enabled||!feature||!feature.geometry)return feature;const g=feature.geometry;if(g.type==='Polygon')return{...feature,geometry:{...g,coordinates:g.coordinates.map(smoothClosedRing)}};if(g.type==='MultiPolygon')return{...feature,geometry:{...g,coordinates:g.coordinates.map(p=>p.map(smoothClosedRing))}};return feature; }
-function smoothClosedRing(ring){ if(!Array.isArray(ring)||ring.length<4)return ring;const same=(a,b)=>Array.isArray(a)&&Array.isArray(b)&&Number(a[0])===Number(b[0])&&Number(a[1])===Number(b[1]);let points=ring.map(c=>[Number(c[0]),Number(c[1])]);if(same(points[0],points[points.length-1]))points.pop();if(points.length<3)return ring;const samples=Math.max(2,Number(DISPLAY_SMOOTHING.samplesPerSegment)||4);const tangentScale=(1-Math.min(.95,Math.max(0,Number(DISPLAY_SMOOTHING.tension)||0)))/2;const out=[];const n=points.length;for(let i=0;i<n;i++){const p0=points[(i-1+n)%n],p1=points[i],p2=points[(i+1)%n],p3=points[(i+2)%n];const m1=[(p2[0]-p0[0])*tangentScale,(p2[1]-p0[1])*tangentScale],m2=[(p3[0]-p1[0])*tangentScale,(p3[1]-p1[1])*tangentScale];for(let step=0;step<samples;step++){const t=step/samples,t2=t*t,t3=t2*t,h00=2*t3-3*t2+1,h10=t3-2*t2+t,h01=-2*t3+3*t2,h11=t3-t2;out.push([h00*p1[0]+h10*m1[0]+h01*p2[0]+h11*m2[0],h00*p1[1]+h10*m1[1]+h01*p2[1]+h11*m2[1]]);}}out.push([...out[0]]);return out; }
-function clipToCwa(feature,cwa){ try{if(!feature||!feature.geometry||!['Polygon','MultiPolygon'].includes(feature.geometry.type))return null;return turf.intersect(turf.featureCollection([feature,cwa]));}catch(error){console.warn('CWA clipping failed',error);return null;} }
-
-function getSubmittedWfos(){ return state.participants.filter(wfo=>{const r=state.records.get(wfo);return r&&r.status==='SUBMITTED';}); }
-function externalStatusDetail(record){ return record&&record.status==='SUBMITTED'?`Submitted ${formatPublishedTime(record.submittedAt)}`:'Not submitted'; }
-function updateDashboard(){
-  const submitted=getSubmittedWfos(); const total=state.participants.length;
-  dom.publishedCycle.textContent=formatCycleDate(state.payload.cycleDate);
-  dom.publishedAt.textContent=`Viewer updated ${formatPublishedTime(state.payload.publishedAt)}`;
-  dom.submissionSummary.textContent=`${submitted.length}/${total} SUBMITTED`;
-  dom.statusSummary.textContent=`${submitted.length}/${total} submitted · ${total-submitted.length} not submitted`;
-  dom.officeStatusList.innerHTML='';
-  state.participants.forEach(wfo=>{const r=state.records.get(wfo)||{wfo,status:'NOT_SUBMITTED',submittedAt:null};const b=document.createElement('button');b.type='button';b.className='office-status-row'+(wfo===state.selectedWfo?' external-selected':'');const detail=externalStatusDetail(r);b.innerHTML=`<span class="status-code">${escapeHtml(wfo)}</span><span class="status-detail"><span class="status-detail-track">${escapeHtml(detail)}</span></span><span class="status-dot ${escapeHtml(r.status)}"></span>`;b.addEventListener('click',()=>selectWfo(wfo,true));dom.officeStatusList.appendChild(b);});
-  dom.cycleLabel.textContent=`Tuesday ${formatCycleDate(state.payload.cycleDate)} · ${submitted.length}/${total} offices submitted`;
-}
-function selectWfo(wfo,fit){ if(!state.participants.includes(wfo))return;state.selectedWfo=wfo;if(map.getLayer('cwa-active-line'))map.setFilter('cwa-active-line',['==',['get','wfo'],wfo]);updateDashboard();if(fit)fitWfo(wfo,true); }
-function fitWfo(wfo,animated){const cwa=state.cwaByWfo.get(wfo);if(!cwa)return;const b=turf.bbox(cwa);map.fitBounds([[b[0],b[1]],[b[2],b[3]]],{padding:{top:55,right:55,bottom:55,left:55},duration:animated?650:0,maxZoom:8.2});}
-function fitParticipatingOffices(animated){ const features=state.participants.map(w=>state.cwaByWfo.get(w)).filter(Boolean);if(!features.length)return;const b=turf.bbox({type:'FeatureCollection',features});map.fitBounds([[b[0],b[1]],[b[2],b[3]]],{padding:{top:60,right:60,bottom:60,left:60},duration:animated?650:0,maxZoom:7.8}); }
-function formatCycleDate(iso){if(!iso)return'—';const [y,m,d]=String(iso).split('-').map(Number);return `${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}/${y}`;}
-function formatPublishedTime(iso){if(!iso)return'—';try{return new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(new Date(iso));}catch(_){return String(iso);} }
-function getUsdmTraceBaselineDate(cycleDate){const [y,m,d]=cycleDate.split('-').map(Number);const date=new Date(Date.UTC(y,m-1,d));date.setUTCDate(date.getUTCDate()-7);return date.toISOString().slice(0,10);}
-
-function bindViewerUi(){
-  dom.proposalViewBtn.addEventListener('click',()=>setChangeView(false));
-  dom.changeViewBtn.addEventListener('click',()=>setChangeView(true));
-  dom.usdmToggleBtn.addEventListener('click',()=>setUsdm(!state.usdm));
-  dom.citiesToggleBtn.addEventListener('click',()=>{state.citiesVisible=!state.citiesVisible;updateCitiesVisibility();});
-  dom.usdmOpacity.addEventListener('input',()=>{if(map.getLayer('current-usdm-layer'))map.setPaintProperty('current-usdm-layer','raster-opacity',Number(dom.usdmOpacity.value));});
-  dom.exportBtn.addEventListener('click',startExportMode); dom.exportCancelBtn.addEventListener('click',stopExportMode); dom.exportDownloadBtn.addEventListener('click',downloadExportPng);
-}
-async function setChangeView(enabled){ if(state.changeLoading||state.exporting)return;const next=!!enabled;if(next&&state.usdm)setUsdm(false);state.changeView=next;if(next){const ready=await renderChangeComposite(true);if(!ready)state.changeView=false;}applyAnalysisViewVisibility();updateModePresentation(); }
-function setUsdm(enabled){state.usdm=!!enabled;setLayerVisibility('current-usdm-layer',state.usdm);dom.usdmToggleBtn.classList.toggle('active',state.usdm);dom.usdmToggleBtn.setAttribute('aria-pressed',String(state.usdm));dom.usdmOpacityPanel.classList.toggle('hidden',!state.usdm);applyAnalysisViewVisibility();updateModePresentation();}
-function updateCitiesVisibility(){setLayerVisibility('ref-place-labels',state.citiesVisible);dom.citiesToggleBtn.classList.toggle('active',state.citiesVisible);dom.citiesToggleBtn.setAttribute('aria-pressed',String(state.citiesVisible));}
-function applyAnalysisViewVisibility(){const showChange=state.exporting?state.exportProduct==='change':state.changeView&&!state.usdm;const showProposal=state.exporting?state.exportProduct==='proposal':!state.usdm&&!showChange;CATEGORIES.forEach(c=>setLayerVisibility(`analysis-fill-${c}`,showProposal));setLayerVisibility('drought-change-layer',showChange);updateChangeWaterLayerOrder();}
-function updateModePresentation(){const changeSelected=state.changeView&&!state.usdm;dom.proposalViewBtn.classList.toggle('active',!changeSelected);dom.proposalViewBtn.setAttribute('aria-pressed',String(!changeSelected));dom.changeViewBtn.classList.toggle('active',changeSelected);dom.changeViewBtn.setAttribute('aria-pressed',String(changeSelected));dom.proposalViewBtn.disabled=state.usdm||state.changeLoading||state.exporting;dom.changeViewBtn.disabled=state.usdm||state.changeLoading||state.exporting;dom.mapModeBadge.textContent=state.usdm?'CURRENT U.S. DROUGHT MONITOR':changeSelected?'READ ONLY · USDM CHANGE':'READ ONLY · SUBMITTED PROPOSAL';updateLegendPresentation();}
-function setLayerVisibility(id,visible){if(map&&map.getLayer(id))map.setLayoutProperty(id,'visibility',visible?'visible':'none');}
-
-function getLegendDefinition(kind){return kind==='change'?{title:'Week-to-week change',rows:CHANGE_LEGEND}:{title:'Drought categories',rows:DROUGHT_LEGEND};}
-function legendRowHtml(row,compact=false){const code=row.code?`<strong>${escapeHtml(row.code)}</strong>`:'<span class="legend-code-spacer"></span>';const klass=compact?'export-legend-row':'legend-row';return `<div class="${klass}"><span class="swatch dynamic" style="background:${escapeHtml(row.color)}"></span>${code}<span>${escapeHtml(row.label)}</span></div>`;}
-function renderLegendInto(element,kind,compact=false){const l=getLegendDefinition(kind);element.innerHTML=`${compact?`<div class="export-legend-title">${escapeHtml(l.title)}</div>`:''}${l.rows.map(r=>legendRowHtml(r,compact)).join('')}`;}
-function updateLegendPresentation(){const kind=!state.usdm&&state.changeView?'change':'drought';const l=getLegendDefinition(kind);dom.legendTitle.textContent=l.title;renderLegendInto(dom.legendRows,kind,false);}
-
-function polygonFeatureOnly(feature){return !!(feature&&feature.geometry&&(feature.geometry.type==='Polygon'||feature.geometry.type==='MultiPolygon'));}
-function bboxesOverlap(a,b){return a[0]<=b[2]&&a[2]>=b[0]&&a[1]<=b[3]&&a[3]>=b[1];}
-function featureBbox(feature){if(!polygonFeatureOnly(feature))return null;if(Array.isArray(feature.bbox)&&feature.bbox.length>=4)return feature.bbox;try{const b=turf.bbox(feature);feature.bbox=b;return b;}catch(_){return null;}}
-function proposalLevel(feature){return Number(normalizeCategory(feature&&feature.properties&&feature.properties.category).slice(1));}
-function priorUsdmLevel(feature){const p=feature&&feature.properties?feature.properties:{};const level=Number(p.DM??p.dm??p.Dm??p.drought??p.DROUGHT);return Number.isInteger(level)&&level>=0&&level<=4?level:null;}
-function changeKeyForLevels(priorLevel,proposedLevel){if(priorLevel===-1&&proposedLevel===-1)return'none';const delta=proposedLevel-priorLevel;if(delta===0)return'same';return delta<0?`improve${Math.min(5,Math.abs(delta))}`:`degrade${Math.min(5,delta)}`;}
-function ringBounds(ring){if(!Array.isArray(ring)||!ring.length)return null;let west=Infinity,south=Infinity,east=-Infinity,north=-Infinity;for(const c of ring){if(!Array.isArray(c)||c.length<2)continue;const lon=Number(c[0]),lat=Number(c[1]);if(!Number.isFinite(lon)||!Number.isFinite(lat))continue;west=Math.min(west,lon);south=Math.min(south,lat);east=Math.max(east,lon);north=Math.max(north,lat);}return[west,south,east,north].every(Number.isFinite)?[west,south,east,north]:null;}
-function localizeUsdmFeatureToBounds(feature,bounds){if(!polygonFeatureOnly(feature)||!bounds)return null;const bbox=featureBbox(feature);if(!bbox||!bboxesOverlap(bbox,bounds))return null;if(feature.geometry.type==='Polygon')return feature;const polygons=feature.geometry.coordinates.filter(p=>{const b=ringBounds(Array.isArray(p)?p[0]:null);return!!b&&bboxesOverlap(b,bounds);});if(!polygons.length)return null;return{...feature,geometry:{...feature.geometry,coordinates:polygons}};}
-async function loadUsdmPolygonsForChange(date){if(state.usdmChangeCache.has(date))return state.usdmChangeCache.get(date);const compact=date.replaceAll('-','');const url=`${USDM_CHANGE_GEO_ORIGINAL_BASE_URL}/USDM-${compact}-original.geojson`;const response=await fetch(url,{cache:'force-cache'});if(!response.ok)throw new Error(response.status===404?`No full-resolution USDM data found for ${formatCycleDate(date)}.`:`USDM request failed with HTTP ${response.status}.`);const data=await response.json();const converted=data&&data.type==='FeatureCollection'?data.features:(data&&data.type==='Feature'?[data]:[]);const features=converted.filter(f=>polygonFeatureOnly(f)&&Number.isInteger(priorUsdmLevel(f)));features.forEach(featureBbox);const output={type:'FeatureCollection',features};state.usdmChangeCache.set(date,output);while(state.usdmChangeCache.size>3)state.usdmChangeCache.delete(state.usdmChangeCache.keys().next().value);return output;}
-function preloadChangeSourceData(cycleDate){const baseline=getUsdmTraceBaselineDate(cycleDate);return loadUsdmPolygonsForChange(baseline).catch(error=>{console.warn('[DroughtChange] preload failed',error);return null;});}
-function lonToMercatorX(lon){return(Number(lon)+180)/360;}
-function latToMercatorY(lat){const clamped=Math.max(-85.05112878,Math.min(85.05112878,Number(lat)));const rad=clamped*Math.PI/180;return(1-Math.log(Math.tan(rad)+1/Math.cos(rad))/Math.PI)/2;}
-function getChangeRasterBounds(wfos){let west=Infinity,south=Infinity,east=-Infinity,north=-Infinity;wfos.forEach(wfo=>{const cwa=state.cwaByWfo.get(wfo);if(!cwa)return;const b=featureBbox(cwa)||turf.bbox(cwa);west=Math.min(west,b[0]);south=Math.min(south,b[1]);east=Math.max(east,b[2]);north=Math.max(north,b[3]);});if(![west,south,east,north].every(Number.isFinite)||east<=west||north<=south)throw new Error('Unable to determine submitted-office comparison extent.');if(east-west>180)throw new Error('Change is not available for an antimeridian-spanning extent.');return[west,south,east,north];}
-function buildRasterGeometry(bounds){const[west,south,east,north]=bounds,x0=lonToMercatorX(west),x1=lonToMercatorX(east),y0=latToMercatorY(north),y1=latToMercatorY(south),centerLat=(north+south)/2,groundScale=Math.max(.08,Math.cos(centerLat*Math.PI/180)),earth=40075016.68557849,spanX=Math.abs(x1-x0)*earth*groundScale,spanY=Math.abs(y1-y0)*earth*groundScale,target=CHANGE_GRID_TARGET_MILES*1609.344;let width=Math.max(2,Math.ceil(spanX/target)),height=Math.max(2,Math.ceil(spanY/target));const scale=Math.max(1,width/CHANGE_GRID_MAX_DIMENSION,height/CHANGE_GRID_MAX_DIMENSION,Math.sqrt(width*height/CHANGE_GRID_MAX_PIXELS));if(scale>1){width=Math.max(2,Math.floor(width/scale));height=Math.max(2,Math.floor(height/scale));}return{bounds,width,height,x0,x1,y0,y1,metersPerPixelX:spanX/width,metersPerPixelY:spanY/height,coordinates:[[west,north],[east,north],[east,south],[west,south]]};}
-function rasterPoint(t,c){return[(lonToMercatorX(c[0])-t.x0)/(t.x1-t.x0)*t.width,(latToMercatorY(c[1])-t.y0)/(t.y1-t.y0)*t.height];}
-function appendRingToCanvasPath(ctx,ring,t){if(!Array.isArray(ring)||ring.length<3)return;const first=rasterPoint(t,ring[0]);ctx.moveTo(first[0],first[1]);for(let i=1;i<ring.length;i++){const p=rasterPoint(t,ring[i]);ctx.lineTo(p[0],p[1]);}ctx.closePath();}
-function fillPolygonFeature(ctx,feature,t){if(!polygonFeatureOnly(feature))return;ctx.beginPath();if(feature.geometry.type==='Polygon')feature.geometry.coordinates.forEach(r=>appendRingToCanvasPath(ctx,r,t));else feature.geometry.coordinates.forEach(p=>p.forEach(r=>appendRingToCanvasPath(ctx,r,t)));ctx.fill('evenodd');}
-function makeScratchCanvas(width,height){const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d',{alpha:true,willReadFrequently:true});if(!ctx)throw new Error('Unable to create change raster workspace.');ctx.fillStyle='#fff';return{canvas,ctx};}
-function rasterizeCwaMask(cwas,t,scratch){const{ctx}=scratch;ctx.clearRect(0,0,t.width,t.height);ctx.fillStyle='#fff';cwas.forEach(c=>fillPolygonFeature(ctx,c,t));const rgba=ctx.getImageData(0,0,t.width,t.height).data,mask=new Uint8Array(t.width*t.height);for(let i=0,p=3;i<mask.length;i++,p+=4)if(rgba[p]>=128)mask[i]=1;return mask;}
-async function rasterizeHighestTier(features,getLevel,t,scratch){const grouped=[[],[],[],[],[]];(features||[]).forEach(f=>{if(!polygonFeatureOnly(f))return;const level=getLevel(f);if(Number.isInteger(level)&&level>=0&&level<=4)grouped[level].push(f);});const result=new Int8Array(t.width*t.height);result.fill(-1);const{ctx}=scratch;for(let level=0;level<=4;level++){if(!grouped[level].length)continue;ctx.clearRect(0,0,t.width,t.height);ctx.fillStyle='#fff';grouped[level].forEach(f=>fillPolygonFeature(ctx,f,t));const rgba=ctx.getImageData(0,0,t.width,t.height).data;for(let i=0,p=3;i<result.length;i++,p+=4)if(rgba[p]>=128)result[i]=level;}await new Promise(resolve=>setTimeout(resolve,0));return result;}
-function buildPriorBoundaryToleranceMask(priorLevels,cwaMask,t){const{width,height}=t,pixelCount=width*height,boundaryBits=new Uint8Array(pixelCount);const mark=(aIndex,bIndex)=>{const a=priorLevels[aIndex],b=priorLevels[bIndex];if(a<0||b<0||Math.abs(a-b)!==1)return;const bit=1<<Math.min(a,b);boundaryBits[aIndex]|=bit;boundaryBits[bIndex]|=bit;};for(let y=0;y<height;y++){const row=y*width;for(let x=0;x<width;x++){const i=row+x;if(!cwaMask[i])continue;if(x+1<width&&cwaMask[i+1])mark(i,i+1);if(y+1<height&&cwaMask[i+width])mark(i,i+width);}}const toleranceMeters=CHANGE_BOUNDARY_TOLERANCE_MILES*1609.344,maxDx=Math.max(1,Math.ceil(toleranceMeters/Math.max(1,t.metersPerPixelX))),maxDy=Math.max(1,Math.ceil(toleranceMeters/Math.max(1,t.metersPerPixelY))),offsets=[];for(let dy=-maxDy;dy<=maxDy;dy++)for(let dx=-maxDx;dx<=maxDx;dx++){const mx=dx*t.metersPerPixelX,my=dy*t.metersPerPixelY;if(Math.hypot(mx,my)<=toleranceMeters+Math.max(t.metersPerPixelX,t.metersPerPixelY)*.5)offsets.push([dx,dy]);}const bitsOut=new Uint8Array(pixelCount);for(let y=0;y<height;y++){const row=y*width;for(let x=0;x<width;x++){const i=row+x,bits=boundaryBits[i];if(!bits)continue;for(const[dx,dy]of offsets){const nx=x+dx,ny=y+dy;if(nx<0||nx>=width||ny<0||ny>=height)continue;const ni=ny*width+nx;if(cwaMask[ni])bitsOut[ni]|=bits;}}}return bitsOut;}
-function hexToRgb(hex){const v=String(hex).replace('#','');return[parseInt(v.slice(0,2),16),parseInt(v.slice(2,4),16),parseInt(v.slice(4,6),16)];}
-const CHANGE_RGB=Object.freeze(Object.fromEntries(Object.entries(CHANGE_COLORS).map(([k,v])=>[k,hexToRgb(v)])));
-function paintChangeRaster(cwaMask,priorLevels,proposedLevels,toleranceMask,t){const image=new ImageData(t.width,t.height),rgba=image.data;for(let i=0,p=0;i<cwaMask.length;i++,p+=4){if(!cwaMask[i])continue;const prior=priorLevels[i],proposed=proposedLevels[i];let key;if(prior===-1&&proposed===-1)key='none';else if(prior===proposed)key='same';else if(prior>=0&&proposed>=0&&Math.abs(proposed-prior)===1&&(toleranceMask[i]&(1<<Math.min(prior,proposed))))key='same';else key=changeKeyForLevels(prior,proposed);const rgb=CHANGE_RGB[key]||CHANGE_RGB.none;rgba[p]=rgb[0];rgba[p+1]=rgb[1];rgba[p+2]=rgb[2];rgba[p+3]=255;}return image;}
-function imageDataToObjectUrl(image){return new Promise((resolve,reject)=>{const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;const ctx=canvas.getContext('2d',{alpha:true});if(!ctx)return reject(new Error('Unable to encode change raster.'));ctx.putImageData(image,0,0);canvas.toBlob(blob=>{canvas.width=1;canvas.height=1;if(!blob)return reject(new Error('Change raster PNG encoder returned no data.'));resolve(URL.createObjectURL(blob));},'image/png');});}
-function releaseChangeObjectUrl(url){if(!url||!String(url).startsWith('blob:'))return;setTimeout(()=>{try{URL.revokeObjectURL(url);}catch(_){}},5000);}
-async function renderChangeComposite(manageLoading=true){const submitted=getSubmittedWfos();if(!submitted.length){if(manageLoading)showToast('No offices have submitted for this Tuesday.',true,6500);return false;}state.changeLoading=true;updateModePresentation();if(manageLoading)setLoading(true,'Calculating data-based USDM change…');let scratch=null;try{const bounds=getChangeRasterBounds(submitted),t=buildRasterGeometry(bounds),baseline=getUsdmTraceBaselineDate(state.payload.cycleDate),priorUsdm=await loadUsdmPolygonsForChange(baseline),localUsdm=priorUsdm.features.map(f=>localizeUsdmFeatureToBounds(f,bounds)).filter(Boolean),cwas=submitted.map(w=>state.cwaByWfo.get(w)).filter(Boolean),proposal=[];submitted.forEach(w=>proposal.push(...(state.displayByWfo.get(w)||[])));scratch=makeScratchCanvas(t.width,t.height);const cwaMask=rasterizeCwaMask(cwas,t,scratch),priorLevels=await rasterizeHighestTier(localUsdm,priorUsdmLevel,t,scratch),proposedLevels=await rasterizeHighestTier(proposal,proposalLevel,t,scratch),tolerance=buildPriorBoundaryToleranceMask(priorLevels,cwaMask,t),image=paintChangeRaster(cwaMask,priorLevels,proposedLevels,tolerance,t),next=await imageDataToObjectUrl(image),source=map.getSource('drought-change'),old=state.changeImageObjectUrl;source.updateImage({url:next,coordinates:t.coordinates});state.changeImageObjectUrl=next;releaseChangeObjectUrl(old);map.triggerRepaint();return true;}catch(error){console.error(error);if(manageLoading)showToast(`Unable to build week-to-week change: ${error.message}`,true,8500);return false;}finally{if(scratch){scratch.canvas.width=1;scratch.canvas.height=1;}state.changeLoading=false;if(manageLoading)setLoading(false);updateModePresentation();}}
-
-function formatCycleStampDate(iso){const[y,m,d]=iso.split('-').map(Number);return`${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}/${String(y).slice(-2)}`;}
-function getExportStampText(){const offices=getSubmittedWfos(),dateText=formatCycleStampDate(state.payload.cycleDate),officeText=offices.length?` (${offices.join(', ')})`:'';if(state.exportProduct==='change'){const prior=formatCycleStampDate(getUsdmTraceBaselineDate(state.payload.cycleDate));return{title:'WEEK-TO-WEEK DROUGHT CHANGE',detail:`USDM ${prior} → Proposal ${dateText}${officeText}`};}return{title:'PROPOSED DROUGHT UPDATES',detail:`Tue ${dateText}${officeText}`};}
-function updateExportStampPreview(){const stamp=getExportStampText();dom.exportStampTitle.textContent=stamp.title;dom.exportStampDetail.textContent=stamp.detail;renderLegendInto(dom.exportLegendPreview,state.exportProduct==='change'?'change':'drought',true);}
-function layoutExportViewfinder(){if(!state.exporting)return;const wrap=document.querySelector('.map-wrap'),rect=wrap.getBoundingClientRect(),aspect=EXPORT_WIDTH/EXPORT_HEIGHT,marginX=28,marginTop=58,marginBottom=26,maxW=Math.max(240,rect.width-marginX*2),maxH=Math.max(140,rect.height-marginTop-marginBottom);let width=maxW,height=width/aspect;if(height>maxH){height=maxH;width=height*aspect;}dom.exportViewfinder.style.width=`${Math.round(width)}px`;dom.exportViewfinder.style.height=`${Math.round(height)}px`;dom.exportViewfinder.style.left=`${Math.round((rect.width-width)/2)}px`;dom.exportViewfinder.style.top=`${Math.round((rect.height-height)/2)}px`;}
-function startExportMode(){if(state.exporting)return;state.exportProduct=state.changeView?'change':'proposal';state.exporting=true;state.exportRestore={pixelRatio:typeof map.getPixelRatio==='function'?map.getPixelRatio():window.devicePixelRatio};setLayerVisibility('current-usdm-layer',false);applyAnalysisViewVisibility();if(typeof map.setPixelRatio==='function')map.setPixelRatio(Math.max(2,window.devicePixelRatio||1));document.body.classList.add('export-composing');dom.exportOverlay.classList.remove('hidden');updateExportStampPreview();layoutExportViewfinder();window.addEventListener('resize',layoutExportViewfinder);dom.exportBtn.disabled=true;requestAnimationFrame(()=>map.resize());}
-function stopExportMode(){if(!state.exporting)return;state.exporting=false;window.removeEventListener('resize',layoutExportViewfinder);dom.exportOverlay.classList.add('hidden');document.body.classList.remove('export-composing');if(typeof map.setPixelRatio==='function'&&state.exportRestore&&Number.isFinite(state.exportRestore.pixelRatio))map.setPixelRatio(state.exportRestore.pixelRatio);state.exportRestore=null;state.exportProduct=null;setLayerVisibility('current-usdm-layer',state.usdm);applyAnalysisViewVisibility();updateModePresentation();dom.exportBtn.disabled=false;map.resize();}
-function waitForMapIdle(timeoutMs=5000){return new Promise(resolve=>{if(map.loaded()&&!map.isMoving()&&!map.isZooming()&&!map.isRotating()){requestAnimationFrame(()=>requestAnimationFrame(resolve));return;}let done=false;const finish=()=>{if(done)return;done=true;clearTimeout(timer);map.off('idle',finish);resolve();};const timer=setTimeout(finish,timeoutMs);map.once('idle',finish);});}
-function roundedRectPath(ctx,x,y,width,height,radius){const r=Math.min(radius,width/2,height/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+width-r,y);ctx.quadraticCurveTo(x+width,y,x+width,y+r);ctx.lineTo(x+width,y+height-r);ctx.quadraticCurveTo(x+width,y+height,x+width-r,y+height);ctx.lineTo(x+r,y+height);ctx.quadraticCurveTo(x,y+height,x,y+height-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
-function drawExportStamp(ctx){const stamp=getExportStampText(),x=18,bottom=18,padX=11,boxH=52,titleY=EXPORT_HEIGHT-bottom-33,detailY=EXPORT_HEIGHT-bottom-14;ctx.save();ctx.textAlign='left';ctx.textBaseline='middle';ctx.font='800 16px Roboto, Arial, sans-serif';const titleW=ctx.measureText(stamp.title).width;ctx.font='700 12px Roboto, Arial, sans-serif';const detailW=ctx.measureText(stamp.detail).width,boxW=Math.ceil(Math.max(titleW,detailW)+padX*2),boxY=EXPORT_HEIGHT-bottom-boxH;roundedRectPath(ctx,x,boxY,boxW,boxH,6);ctx.fillStyle='rgba(29,23,19,.88)';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.42)';ctx.stroke();ctx.fillStyle='#fff';ctx.font='800 16px Roboto, Arial, sans-serif';ctx.fillText(stamp.title,x+padX,titleY);ctx.fillStyle='rgba(255,255,255,.82)';ctx.font='700 12px Roboto, Arial, sans-serif';ctx.fillText(stamp.detail,x+padX,detailY);ctx.restore();}
-function drawExportLegend(ctx){const kind=state.exportProduct==='change'?'change':'drought',legend=getLegendDefinition(kind),rows=legend.rows,xPad=13,top=18,rowH=kind==='change'?20:22,titleH=29,boxW=kind==='change'?280:246,boxH=titleH+rows.length*rowH+12,x=EXPORT_WIDTH-18-boxW;ctx.save();roundedRectPath(ctx,x,top,boxW,boxH,6);ctx.fillStyle='rgba(29,23,19,.90)';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.42)';ctx.stroke();ctx.fillStyle='#fff';ctx.font='800 14px Roboto, Arial, sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(legend.title.toUpperCase(),x+xPad,top+14);rows.forEach((row,index)=>{const y=top+titleH+index*rowH+3;ctx.fillStyle=row.color;ctx.fillRect(x+xPad,y,27,13);ctx.strokeStyle=row.color.toLowerCase()==='#ffffff'?'rgba(40,40,40,.9)':'rgba(255,255,255,.62)';ctx.strokeRect(x+xPad+.5,y+.5,26,12);ctx.fillStyle='rgba(255,255,255,.90)';ctx.font='700 11.5px Roboto, Arial, sans-serif';ctx.fillText(`${row.code?row.code+'  ':''}${row.label}`,x+xPad+36,y+7);});ctx.restore();}
-function drawExportAttribution(ctx){const inner=map.getContainer().querySelector('.maplibregl-ctrl-attrib-inner'),text=inner?String(inner.textContent||'').replace(/\s+/g,' ').trim():'';if(!text)return;ctx.save();ctx.font='500 8px Arial, sans-serif';ctx.textAlign='right';ctx.textBaseline='bottom';const x=EXPORT_WIDTH-8,y=EXPORT_HEIGHT-6,width=ctx.measureText(text).width+8;ctx.fillStyle='rgba(29,23,19,.72)';ctx.fillRect(x-width,y-12,width,13);ctx.fillStyle='rgba(255,255,255,.76)';ctx.fillText(text,x-4,y-2);ctx.restore();}
-async function downloadExportPng(){if(!state.exporting)return;dom.exportDownloadBtn.disabled=true;dom.exportDownloadBtn.textContent='Rendering…';try{await waitForMapIdle();const source=map.getCanvas(),canvasRect=source.getBoundingClientRect(),frameRect=dom.exportViewfinder.getBoundingClientRect(),scaleX=source.width/canvasRect.width,scaleY=source.height/canvasRect.height,sx=(frameRect.left-canvasRect.left)*scaleX,sy=(frameRect.top-canvasRect.top)*scaleY,sw=frameRect.width*scaleX,sh=frameRect.height*scaleY;const final=document.createElement('canvas');final.width=EXPORT_WIDTH*EXPORT_SCALE;final.height=EXPORT_HEIGHT*EXPORT_SCALE;const ctx=final.getContext('2d');ctx.scale(EXPORT_SCALE,EXPORT_SCALE);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(source,sx,sy,sw,sh,0,0,EXPORT_WIDTH,EXPORT_HEIGHT);drawExportStamp(ctx);drawExportLegend(ctx);drawExportAttribution(ctx);const blob=await new Promise((resolve,reject)=>final.toBlob(result=>result?resolve(result):reject(new Error('PNG encoder returned no data.')),'image/png'));const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=state.exportProduct==='change'?`drought_change_${state.payload.cycleDate}.png`:`proposed_drought_updates_${state.payload.cycleDate}.png`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);showToast(`PNG exported · ${EXPORT_WIDTH*EXPORT_SCALE}×${EXPORT_HEIGHT*EXPORT_SCALE}`);}catch(error){console.error(error);showToast(`Export failed: ${error.message}`,true,9000);}finally{dom.exportDownloadBtn.disabled=false;dom.exportDownloadBtn.textContent='Download PNG';}}
 </script>
 </body>
 </html>
