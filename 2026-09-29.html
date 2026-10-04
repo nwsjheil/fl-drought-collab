@@ -583,7 +583,8 @@
   }
   .legend-line-swatch::before { border-top: 4px solid rgba(255,255,255,.95); }
   .legend-line-swatch::after { border-top: 2px solid #686868; }
-  .legend-line-swatch.proposed::after { border-top: 2.5px dashed #111; }
+  .legend-line-swatch.proposed::before { border-top: 5px solid rgba(255,255,255,.98); }
+  .legend-line-swatch.proposed::after { border-top: 3px dashed #111; }
   .legend-text-swatch {
     min-width: 42px; padding: 1px 3px; border: 1px solid #8f8379; border-radius: 3px;
     background: #fff; color: #111; font-size: 8px; font-weight: 900; text-align: center;
@@ -1061,6 +1062,15 @@
     .status-dot.NOT_SUBMITTED { background: #6d625a; }
     .status-dot.SUBMITTED { background: #78a67f; }
     .external-top-spacer { flex: 1 1 auto; }
+    .proposal-change-toggle #recommendationsViewBtn.active { background: #39444d; color: #f5f8fa; }
+    .legend-line-swatch {
+      position: relative; width: 22px; height: 13px; display: inline-block;
+    }
+    .legend-line-swatch::before, .legend-line-swatch::after {
+      content: ''; position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+    }
+    .legend-line-swatch.proposed::before { border-top: 5px solid rgba(255,255,255,.98); }
+    .legend-line-swatch.proposed::after { border-top: 3px dashed #111; }
     @media (max-width: 1050px) {
       .brand-subtitle { display: none; }
       .topbar { gap: 8px; padding: 0 10px; }
@@ -1100,6 +1110,7 @@
         <div class="segmented proposal-change-toggle" role="group" aria-label="Proposal and USDM change product">
           <button id="proposalViewBtn" class="segment active" type="button" aria-pressed="true">Current Proposal</button>
           <button id="changeViewBtn" class="segment" type="button" aria-pressed="false">Change vs USDM</button>
+          <button id="recommendationsViewBtn" class="segment" type="button" aria-pressed="false" title="Prior USDM with material proposed contour changes">Recommendations</button>
         </div>
         <button id="usdmToggleBtn" class="usdm-toggle" type="button" aria-pressed="false">Current USDM</button>
         <button id="citiesToggleBtn" class="cities-toggle active" type="button" aria-pressed="true">Cities</button>
@@ -1166,7 +1177,7 @@
   </div>
 
 <script>
-const PUBLISHED_ENVELOPE = {"cipher":"AES-256-GCM","iterations":310000,"iv":"8aOM3GhGa1rpgLCK","salt":"rECSeEaXjPIFgqHbnjIiMw==","ciphertext":"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","kdf":"PBKDF2-SHA256","v":1};
+const PUBLISHED_ENVELOPE = {"iterations":310000,"cipher":"AES-256-GCM","iv":"GThgoJt8MukC7P5J","ciphertext":"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","salt":"5AVPjv9ffMj6rlOZSOLhbQ==","v":1,"kdf":"PBKDF2-SHA256"};
 
 
 
@@ -1205,6 +1216,16 @@ const CHANGE_GRID_TARGET_MILES = 0.33;
 const CHANGE_GRID_MAX_PIXELS = 1200000;
 const CHANGE_GRID_MAX_DIMENSION = 2048;
 const CHANGE_TRANSPARENT_PIXEL_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg==';
+
+
+
+const RECOMMENDATIONS_BOUNDARY_TOLERANCE_MILES = 1;
+const RECOMMENDATIONS_MIN_COMPONENT_PIXELS = 8;
+const RECOMMENDATIONS_MAX_LABELS = 48;
+const RECOMMENDATIONS_MIN_LINE_EDGES = 2;
+const RECOMMENDATIONS_EDGE_STRIDE = 4096;
+const RECOMMENDATIONS_LINE_SIMPLIFY_DEGREES = 0.0010;
+const RECOMMENDATIONS_LINE_SMOOTH_PASSES = 2;
 const EXPORT_WIDTH = 1350;
 const EXPORT_HEIGHT = 759;
 const EXPORT_SCALE = 2;
@@ -1235,10 +1256,14 @@ const CHANGE_LEGEND = Object.freeze([
   {color:CHANGE_COLORS.degrade5,label:'5 categories of degradation'},
   {color:CHANGE_COLORS.none,label:'No drought'}
 ]);
+const RECOMMENDATIONS_LEGEND = Object.freeze([
+  ...DROUGHT_LEGEND,
+  {lineStyle:'proposed',label:'Proposed boundary · material changed contour'}
+]);
 
 const dom = Object.fromEntries([
   'keyOverlay','keyForm','keyInput','keySubmit','keyProgress','keyError','appShell','cycleLabel','publishedCycle','publishedAt','submissionSummary',
-  'proposalViewBtn','changeViewBtn','usdmToggleBtn','citiesToggleBtn','exportBtn','statusSummary','officeStatusList','legendTitle','legendRows',
+  'proposalViewBtn','changeViewBtn','recommendationsViewBtn','usdmToggleBtn','citiesToggleBtn','exportBtn','statusSummary','officeStatusList','legendTitle','legendRows',
   'mapModeBadge','usdmOpacityPanel','usdmOpacity','loadingOverlay','loadingText','toast','exportOverlay','exportViewfinder','exportStampTitle',
   'exportStampDetail','exportLegendPreview','exportCancelBtn','exportDownloadBtn'
 ].map(id => [id, document.getElementById(id)]));
@@ -1247,6 +1272,7 @@ const state = {
   payload:null, records:new Map(), participants:[], analysisRaw:{type:'FeatureCollection',features:[]},
   cwas:null, cwaByWfo:new Map(), clipCwaByWfo:new Map(), displayByWfo:new Map(), selectedWfo:'',
   changeView:false, changeLoading:false, changeImageObjectUrl:'', changeWaterRestoreBeforeId:'', usdm:false, citiesVisible:true,
+  recommendationsView:false, recommendationsLoading:false, recommendationsRenderKey:'', recommendationsCalculationVersion:0, recommendationsBaseDate:'',
   usdmChangeCache:new Map(), popup:null, toastTimer:null, exporting:false, exportProduct:null, exportRestore:null
 };
 let map = null;
@@ -1324,7 +1350,7 @@ async function initializeViewer(){
   state.cwaByWfo=new Map(state.cwas.features.map(f=>[f.properties.wfo,f]));
   state.clipCwaByWfo=new Map(state.cwas.features.map(f=>[f.properties.wfo,prepareCwaForClip(f)]));
   await buildBaseReferenceMap();
-  setupAnalysisLayers(); setupChangeLayer(); setupCwaLayers(); setupCurrentUsdmLayer(); raiseReferenceLayers();
+  setupAnalysisLayers(); setupChangeLayer(); setupRecommendationsLayers(); setupCwaLayers(); setupCurrentUsdmLayer(); raiseReferenceLayers();
   prepareSubmittedDisplay(); renderComposite(); bindViewerUi(); updateDashboard(); updateLegendPresentation(); updateCitiesVisibility(); applyAnalysisViewVisibility();
   fitParticipatingOffices(false);
   setLoading(false);
@@ -1355,8 +1381,108 @@ function buildPlaceCollection(placesData,hamletsData){ const best=new Map(); con
 function setupAnalysisLayers(){ map.addSource('analysis-composite',{type:'geojson',data:{type:'FeatureCollection',features:[]}}); CATEGORIES.forEach(category=>map.addLayer({id:`analysis-fill-${category}`,type:'fill',source:'analysis-composite',filter:['==',['get','category'],category],paint:{'fill-color':CATEGORY_COLORS[category],'fill-opacity':1}})); }
 function addStaticChangeImageSource(sourceId,layerId){ map.addSource(sourceId,{type:'image',url:CHANGE_TRANSPARENT_PIXEL_URL,coordinates:[[-1,1],[1,1],[1,-1],[-1,-1]]}); map.addLayer({id:layerId,type:'raster',source:sourceId,layout:{visibility:'none'},paint:{'raster-opacity':1,'raster-fade-duration':0,'raster-resampling':'nearest'}}); }
 function setupChangeLayer(){ addStaticChangeImageSource('drought-change','drought-change-layer'); rememberChangeWaterLayerOrder(); }
+
+function setupRecommendationsLayers() {
+  map.addSource('recommendations-usdm-base', {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features: [] }
+  });
+
+  
+  
+  CATEGORIES.forEach((category, level) => {
+    map.addLayer({
+      id: `recommendations-usdm-fill-${category}`,
+      type: 'fill',
+      source: 'recommendations-usdm-base',
+      filter: ['==', ['get', 'recLevel'], level],
+      layout: { visibility: 'none' },
+      paint: {
+        'fill-color': CATEGORY_COLORS[category],
+        'fill-opacity': 1
+      }
+    });
+  });
+
+  map.addSource('recommendations-redline', {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features: [] }
+  });
+
+  map.addLayer({
+    id: 'recommendations-previous-casing',
+    type: 'line',
+    source: 'recommendations-redline',
+    filter: ['==', ['get', 'kind'], 'previous'],
+    layout: { visibility: 'none', 'line-join': 'round', 'line-cap': 'round' },
+    paint: { 'line-color': '#ffffff', 'line-width': 3.8, 'line-opacity': 0.86 }
+  });
+  map.addLayer({
+    id: 'recommendations-previous-line',
+    type: 'line',
+    source: 'recommendations-redline',
+    filter: ['==', ['get', 'kind'], 'previous'],
+    layout: { visibility: 'none', 'line-join': 'round', 'line-cap': 'round' },
+    paint: { 'line-color': '#686868', 'line-width': 1.8, 'line-opacity': 0.95 }
+  });
+  map.addLayer({
+    id: 'recommendations-proposed-casing',
+    type: 'line',
+    source: 'recommendations-redline',
+    filter: ['==', ['get', 'kind'], 'proposed'],
+    layout: { visibility: 'none', 'line-join': 'round', 'line-cap': 'round' },
+    paint: { 'line-color': '#ffffff', 'line-width': ['interpolate', ['linear'], ['zoom'], 4, 5.8, 6, 6.8, 9, 8.0], 'line-opacity': 0.98 }
+  });
+  map.addLayer({
+    id: 'recommendations-proposed-line',
+    type: 'line',
+    source: 'recommendations-redline',
+    filter: ['==', ['get', 'kind'], 'proposed'],
+    layout: { visibility: 'none', 'line-join': 'round', 'line-cap': 'round' },
+    paint: {
+      'line-color': '#111111',
+      'line-width': ['interpolate', ['linear'], ['zoom'], 4, 2.8, 6, 3.3, 9, 4.0],
+      'line-dasharray': [2.6, 1.7],
+      'line-opacity': 1
+    }
+  });
+  map.addLayer({
+    id: 'recommendations-labels',
+    type: 'symbol',
+    source: 'recommendations-redline',
+    filter: ['==', ['get', 'kind'], 'label'],
+    layout: {
+      visibility: 'none',
+      'text-field': ['get', 'label'],
+      'text-font': ['Noto Sans Bold'],
+      'text-size': ['interpolate', ['linear'], ['zoom'], 4, 15, 6, 18.5, 9, 22.5],
+      'text-padding': 8,
+      'text-allow-overlap': false,
+      'text-ignore-placement': false,
+      'text-variable-anchor': ['center', 'top', 'bottom', 'left', 'right'],
+      'symbol-sort-key': ['-', ['coalesce', ['get', 'size'], 0]]
+    },
+    paint: {
+      'text-color': '#111111',
+      'text-halo-color': 'rgba(255,255,255,0.98)',
+      'text-halo-width': 5.5,
+      'text-halo-blur': 0.25
+    }
+  });
+}
+
+function setRecommendationsLayerVisibility(visible) {
+  CATEGORIES.forEach(category => setLayerVisibility(`recommendations-usdm-fill-${category}`, visible));
+  [
+    'recommendations-previous-casing',
+    'recommendations-previous-line',
+    'recommendations-proposed-casing',
+    'recommendations-proposed-line',
+    'recommendations-labels'
+  ].forEach(id => setLayerVisibility(id, visible));
+}
 function rememberChangeWaterLayerOrder(){ if(!map.getLayer('water'))return;const layers=(map.getStyle()&&map.getStyle().layers)||[];const index=layers.findIndex(l=>l.id==='water');state.changeWaterRestoreBeforeId=index>=0&&index+1<layers.length?layers[index+1].id:''; }
-function isChangeRasterVisible(){ return state.exporting?state.exportProduct==='change':state.changeView&&!state.usdm; }
+function isChangeRasterVisible(){ if(state.usdm)return false; if(state.exporting)return state.exportProduct==='change'||state.exportProduct==='recommendations'; return state.changeView||state.recommendationsView; }
 function updateChangeWaterLayerOrder(){ if(!map.getLayer('water'))return;if(isChangeRasterVisible()){if(map.getLayer('ref-county-lines-casing'))map.moveLayer('water','ref-county-lines-casing');else map.moveLayer('water');raiseReferenceLayers();return;}const before=state.changeWaterRestoreBeforeId;if(before&&map.getLayer(before))map.moveLayer('water',before);else map.moveLayer('water'); }
 
 function setupCwaLayers(){
@@ -1369,7 +1495,7 @@ function setupCwaLayers(){
   map.on('click','cwa-preview-line',event=>{const f=event.features&&event.features[0];if(!f)return;selectWfo(String(f.properties.wfo||''),false);const record=state.records.get(String(f.properties.wfo||''));if(state.popup)state.popup.remove();state.popup=new maplibregl.Popup({closeButton:true}).setLngLat(event.lngLat).setHTML(`<strong>${escapeHtml(f.properties.wfo)}</strong><br><span style="color:#b9aa9b">${escapeHtml(externalStatusDetail(record))}</span>`).addTo(map);});
 }
 function setupCurrentUsdmLayer(){ map.addSource('current-usdm',{type:'raster',tiles:['https://ndmcgeodata.unl.edu/cgi-bin/mapserv.exe?map=/ms4w/apps/usdm/map/usdm_current_wms.map&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=usdm_current&STYLES=default&FORMAT=image/png&TRANSPARENT=TRUE&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}'],tileSize:256,attribution:'NDMC/NOAA/USDA'}); const before=map.getLayer('ref-county-lines-casing')?'ref-county-lines-casing':undefined; map.addLayer({id:'current-usdm-layer',type:'raster',source:'current-usdm',layout:{visibility:'none'},paint:{'raster-opacity':Number(dom.usdmOpacity.value),'raster-fade-duration':150}},before); }
-function raiseReferenceLayers(){ ['ref-county-lines-casing','ref-county-lines','ref-state-lines-casing','ref-state-lines','cwa-reference-lines','cwa-preview-casing','cwa-preview-line','cwa-active-line','ref-place-labels'].forEach(id=>{if(map.getLayer(id))map.moveLayer(id);}); }
+function raiseReferenceLayers(){ ['ref-county-lines-casing','ref-county-lines','ref-state-lines-casing','ref-state-lines','cwa-reference-lines','cwa-preview-casing','cwa-preview-line','cwa-active-line','recommendations-previous-casing','recommendations-previous-line','recommendations-proposed-casing','recommendations-proposed-line','ref-place-labels','recommendations-labels'].forEach(id=>{if(map.getLayer(id))map.moveLayer(id);}); }
 
 function prepareSubmittedDisplay(){
   const rawByWfo=new Map(state.participants.map(wfo=>[wfo,{type:'FeatureCollection',features:[]} ]));
@@ -1403,24 +1529,26 @@ function formatPublishedTime(iso){if(!iso)return'—';try{return new Intl.DateTi
 function getUsdmTraceBaselineDate(cycleDate){const [y,m,d]=cycleDate.split('-').map(Number);const date=new Date(Date.UTC(y,m-1,d));date.setUTCDate(date.getUTCDate()-7);return date.toISOString().slice(0,10);}
 
 function bindViewerUi(){
-  dom.proposalViewBtn.addEventListener('click',()=>setChangeView(false));
+  dom.proposalViewBtn.addEventListener('click',async()=>{if(state.changeView)await setChangeView(false);if(state.recommendationsView)await setRecommendationsView(false);});
   dom.changeViewBtn.addEventListener('click',()=>setChangeView(true));
+  dom.recommendationsViewBtn.addEventListener('click',()=>setRecommendationsView(true));
   dom.usdmToggleBtn.addEventListener('click',()=>setUsdm(!state.usdm));
   dom.citiesToggleBtn.addEventListener('click',()=>{state.citiesVisible=!state.citiesVisible;updateCitiesVisibility();});
   dom.usdmOpacity.addEventListener('input',()=>{if(map.getLayer('current-usdm-layer'))map.setPaintProperty('current-usdm-layer','raster-opacity',Number(dom.usdmOpacity.value));});
   dom.exportBtn.addEventListener('click',startExportMode); dom.exportCancelBtn.addEventListener('click',stopExportMode); dom.exportDownloadBtn.addEventListener('click',downloadExportPng);
 }
-async function setChangeView(enabled){ if(state.changeLoading||state.exporting)return;const next=!!enabled;if(next&&state.usdm)setUsdm(false);state.changeView=next;if(next){const ready=await renderChangeComposite(true);if(!ready)state.changeView=false;}applyAnalysisViewVisibility();updateModePresentation(); }
+async function setChangeView(enabled){ if(state.changeLoading||state.recommendationsLoading||state.exporting)return;const next=!!enabled;if(next&&state.usdm)setUsdm(false);if(next)state.recommendationsView=false;state.changeView=next;if(next){const ready=await renderChangeComposite(true);if(!ready)state.changeView=false;}applyAnalysisViewVisibility();updateModePresentation(); }
+async function setRecommendationsView(enabled){ if(state.changeLoading||state.recommendationsLoading||state.exporting)return;const next=!!enabled;if(next&&state.usdm)setUsdm(false);if(next)state.changeView=false;state.recommendationsView=next;if(next){const ready=await renderRecommendationsComposite(true);if(!ready)state.recommendationsView=false;}applyAnalysisViewVisibility();updateModePresentation();return state.recommendationsView; }
 function setUsdm(enabled){state.usdm=!!enabled;setLayerVisibility('current-usdm-layer',state.usdm);dom.usdmToggleBtn.classList.toggle('active',state.usdm);dom.usdmToggleBtn.setAttribute('aria-pressed',String(state.usdm));dom.usdmOpacityPanel.classList.toggle('hidden',!state.usdm);applyAnalysisViewVisibility();updateModePresentation();}
 function updateCitiesVisibility(){setLayerVisibility('ref-place-labels',state.citiesVisible);dom.citiesToggleBtn.classList.toggle('active',state.citiesVisible);dom.citiesToggleBtn.setAttribute('aria-pressed',String(state.citiesVisible));}
-function applyAnalysisViewVisibility(){const showChange=state.exporting?state.exportProduct==='change':state.changeView&&!state.usdm;const showProposal=state.exporting?state.exportProduct==='proposal':!state.usdm&&!showChange;CATEGORIES.forEach(c=>setLayerVisibility(`analysis-fill-${c}`,showProposal));setLayerVisibility('drought-change-layer',showChange);updateChangeWaterLayerOrder();}
-function updateModePresentation(){const changeSelected=state.changeView&&!state.usdm;dom.proposalViewBtn.classList.toggle('active',!changeSelected);dom.proposalViewBtn.setAttribute('aria-pressed',String(!changeSelected));dom.changeViewBtn.classList.toggle('active',changeSelected);dom.changeViewBtn.setAttribute('aria-pressed',String(changeSelected));dom.proposalViewBtn.disabled=state.usdm||state.changeLoading||state.exporting;dom.changeViewBtn.disabled=state.usdm||state.changeLoading||state.exporting;dom.mapModeBadge.textContent=state.usdm?'CURRENT U.S. DROUGHT MONITOR':changeSelected?'READ ONLY · USDM CHANGE':'READ ONLY · SUBMITTED PROPOSAL';updateLegendPresentation();}
+function applyAnalysisViewVisibility(){const showChange=state.exporting?state.exportProduct==='change':state.changeView&&!state.usdm;const showRecommendations=state.exporting?state.exportProduct==='recommendations':state.recommendationsView&&!state.usdm;const showProposal=state.exporting?state.exportProduct==='proposal':!state.usdm&&!showChange&&!showRecommendations;CATEGORIES.forEach(c=>setLayerVisibility(`analysis-fill-${c}`,showProposal));setLayerVisibility('drought-change-layer',showChange);setRecommendationsLayerVisibility(showRecommendations);updateChangeWaterLayerOrder();}
+function updateModePresentation(){const changeSelected=state.changeView&&!state.usdm;const recommendationsSelected=state.recommendationsView&&!state.usdm;const proposalSelected=!changeSelected&&!recommendationsSelected;const busy=state.changeLoading||state.recommendationsLoading||state.exporting;dom.proposalViewBtn.classList.toggle('active',proposalSelected);dom.proposalViewBtn.setAttribute('aria-pressed',String(proposalSelected));dom.changeViewBtn.classList.toggle('active',changeSelected);dom.changeViewBtn.setAttribute('aria-pressed',String(changeSelected));dom.recommendationsViewBtn.classList.toggle('active',recommendationsSelected);dom.recommendationsViewBtn.setAttribute('aria-pressed',String(recommendationsSelected));dom.proposalViewBtn.disabled=state.usdm||busy;dom.changeViewBtn.disabled=state.usdm||busy;dom.recommendationsViewBtn.disabled=state.usdm||busy;const prior=state.payload?formatCycleStampDate(getUsdmTraceBaselineDate(state.payload.cycleDate)):'--/--/--';const current=state.payload?formatCycleStampDate(state.payload.cycleDate):'--/--/--';dom.mapModeBadge.textContent=state.usdm?'CURRENT U.S. DROUGHT MONITOR':recommendationsSelected?`RECOMMENDATIONS · BASE: USDM ${prior} · DASHED: PROPOSAL ${current}`:changeSelected?'READ ONLY · USDM CHANGE':'READ ONLY · SUBMITTED PROPOSAL';updateLegendPresentation();}
 function setLayerVisibility(id,visible){if(map&&map.getLayer(id))map.setLayoutProperty(id,'visibility',visible?'visible':'none');}
 
-function getLegendDefinition(kind){return kind==='change'?{title:'Week-to-week change',rows:CHANGE_LEGEND}:{title:'Drought categories',rows:DROUGHT_LEGEND};}
-function legendRowHtml(row,compact=false){const code=row.code?`<strong>${escapeHtml(row.code)}</strong>`:'<span class="legend-code-spacer"></span>';const klass=compact?'export-legend-row':'legend-row';return `<div class="${klass}"><span class="swatch dynamic" style="background:${escapeHtml(row.color)}"></span>${code}<span>${escapeHtml(row.label)}</span></div>`;}
+function getLegendDefinition(kind){if(kind==='change')return{title:'Week-to-week change',rows:CHANGE_LEGEND};if(kind==='recommendations')return{title:'Recommendations redline',rows:RECOMMENDATIONS_LEGEND};return{title:'Drought categories',rows:DROUGHT_LEGEND};}
+function legendRowHtml(row,compact=false){const klass=compact?'export-legend-row':'legend-row';if(row.lineStyle)return `<div class="${klass}"><span class="legend-line-swatch ${escapeHtml(row.lineStyle)}"></span><span class="legend-code-spacer"></span><span>${escapeHtml(row.label)}</span></div>`;const code=row.code?`<strong>${escapeHtml(row.code)}</strong>`:'<span class="legend-code-spacer"></span>';return `<div class="${klass}"><span class="swatch dynamic" style="background:${escapeHtml(row.color)}"></span>${code}<span>${escapeHtml(row.label)}</span></div>`;}
 function renderLegendInto(element,kind,compact=false){const l=getLegendDefinition(kind);element.innerHTML=`${compact?`<div class="export-legend-title">${escapeHtml(l.title)}</div>`:''}${l.rows.map(r=>legendRowHtml(r,compact)).join('')}`;}
-function updateLegendPresentation(){const kind=!state.usdm&&state.changeView?'change':'drought';const l=getLegendDefinition(kind);dom.legendTitle.textContent=l.title;renderLegendInto(dom.legendRows,kind,false);}
+function updateLegendPresentation(){const kind=!state.usdm&&state.recommendationsView?'recommendations':(!state.usdm&&state.changeView?'change':'drought');const l=getLegendDefinition(kind);dom.legendTitle.textContent=l.title;renderLegendInto(dom.legendRows,kind,false);}
 
 function polygonFeatureOnly(feature){return !!(feature&&feature.geometry&&(feature.geometry.type==='Polygon'||feature.geometry.type==='MultiPolygon'));}
 function bboxesOverlap(a,b){return a[0]<=b[2]&&a[2]>=b[0]&&a[1]<=b[3]&&a[3]>=b[1];}
@@ -1441,6 +1569,19 @@ function appendRingToCanvasPath(ctx,ring,t){if(!Array.isArray(ring)||ring.length
 function fillPolygonFeature(ctx,feature,t){if(!polygonFeatureOnly(feature))return;ctx.beginPath();if(feature.geometry.type==='Polygon')feature.geometry.coordinates.forEach(r=>appendRingToCanvasPath(ctx,r,t));else feature.geometry.coordinates.forEach(p=>p.forEach(r=>appendRingToCanvasPath(ctx,r,t)));ctx.fill('evenodd');}
 function makeScratchCanvas(width,height){const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d',{alpha:true,willReadFrequently:true});if(!ctx)throw new Error('Unable to create change raster workspace.');ctx.fillStyle='#fff';return{canvas,ctx};}
 function rasterizeCwaMask(cwas,t,scratch){const{ctx}=scratch;ctx.clearRect(0,0,t.width,t.height);ctx.fillStyle='#fff';cwas.forEach(c=>fillPolygonFeature(ctx,c,t));const rgba=ctx.getImageData(0,0,t.width,t.height).data,mask=new Uint8Array(t.width*t.height);for(let i=0,p=3;i<mask.length;i++,p+=4)if(rgba[p]>=128)mask[i]=1;return mask;}
+function rasterizePolygonMask(features, transform, scratch) {
+  const { ctx } = scratch;
+  ctx.clearRect(0, 0, transform.width, transform.height);
+  ctx.fillStyle = '#ffffff';
+  (features || []).forEach(feature => fillPolygonFeature(ctx, feature, transform));
+
+  const rgba = ctx.getImageData(0, 0, transform.width, transform.height).data;
+  const mask = new Uint8Array(transform.width * transform.height);
+  for (let i = 0, p = 3; i < mask.length; i++, p += 4) {
+    if (rgba[p] >= 128) mask[i] = 1;
+  }
+  return mask;
+}
 async function rasterizeHighestTier(features,getLevel,t,scratch){const grouped=[[],[],[],[],[]];(features||[]).forEach(f=>{if(!polygonFeatureOnly(f))return;const level=getLevel(f);if(Number.isInteger(level)&&level>=0&&level<=4)grouped[level].push(f);});const result=new Int8Array(t.width*t.height);result.fill(-1);const{ctx}=scratch;for(let level=0;level<=4;level++){if(!grouped[level].length)continue;ctx.clearRect(0,0,t.width,t.height);ctx.fillStyle='#fff';grouped[level].forEach(f=>fillPolygonFeature(ctx,f,t));const rgba=ctx.getImageData(0,0,t.width,t.height).data;for(let i=0,p=3;i<result.length;i++,p+=4)if(rgba[p]>=128)result[i]=level;}await new Promise(resolve=>setTimeout(resolve,0));return result;}
 function buildPriorBoundaryToleranceMask(priorLevels,cwaMask,t){const{width,height}=t,pixelCount=width*height,boundaryBits=new Uint8Array(pixelCount);const mark=(aIndex,bIndex)=>{const a=priorLevels[aIndex],b=priorLevels[bIndex];if(a<0||b<0||Math.abs(a-b)!==1)return;const bit=1<<Math.min(a,b);boundaryBits[aIndex]|=bit;boundaryBits[bIndex]|=bit;};for(let y=0;y<height;y++){const row=y*width;for(let x=0;x<width;x++){const i=row+x;if(!cwaMask[i])continue;if(x+1<width&&cwaMask[i+1])mark(i,i+1);if(y+1<height&&cwaMask[i+width])mark(i,i+width);}}const toleranceMeters=CHANGE_BOUNDARY_TOLERANCE_MILES*1609.344,maxDx=Math.max(1,Math.ceil(toleranceMeters/Math.max(1,t.metersPerPixelX))),maxDy=Math.max(1,Math.ceil(toleranceMeters/Math.max(1,t.metersPerPixelY))),offsets=[];for(let dy=-maxDy;dy<=maxDy;dy++)for(let dx=-maxDx;dx<=maxDx;dx++){const mx=dx*t.metersPerPixelX,my=dy*t.metersPerPixelY;if(Math.hypot(mx,my)<=toleranceMeters+Math.max(t.metersPerPixelX,t.metersPerPixelY)*.5)offsets.push([dx,dy]);}const bitsOut=new Uint8Array(pixelCount);for(let y=0;y<height;y++){const row=y*width;for(let x=0;x<width;x++){const i=row+x,bits=boundaryBits[i];if(!bits)continue;for(const[dx,dy]of offsets){const nx=x+dx,ny=y+dy;if(nx<0||nx>=width||ny<0||ny>=height)continue;const ni=ny*width+nx;if(cwaMask[ni])bitsOut[ni]|=bits;}}}return bitsOut;}
 function hexToRgb(hex){const v=String(hex).replace('#','');return[parseInt(v.slice(0,2),16),parseInt(v.slice(2,4),16),parseInt(v.slice(4,6),16)];}
@@ -1450,18 +1591,705 @@ function imageDataToObjectUrl(image){return new Promise((resolve,reject)=>{const
 function releaseChangeObjectUrl(url){if(!url||!String(url).startsWith('blob:'))return;setTimeout(()=>{try{URL.revokeObjectURL(url);}catch(_){}},5000);}
 async function renderChangeComposite(manageLoading=true){const submitted=getSubmittedWfos();if(!submitted.length){if(manageLoading)showToast('No offices have submitted for this Tuesday.',true,6500);return false;}state.changeLoading=true;updateModePresentation();if(manageLoading)setLoading(true,'Calculating data-based USDM change…');let scratch=null;try{const bounds=getChangeRasterBounds(submitted),t=buildRasterGeometry(bounds),baseline=getUsdmTraceBaselineDate(state.payload.cycleDate),priorUsdm=await loadUsdmPolygonsForChange(baseline),localUsdm=priorUsdm.features.map(f=>localizeUsdmFeatureToBounds(f,bounds)).filter(Boolean),cwas=submitted.map(w=>state.cwaByWfo.get(w)).filter(Boolean),proposal=[];submitted.forEach(w=>proposal.push(...(state.displayByWfo.get(w)||[])));scratch=makeScratchCanvas(t.width,t.height);const cwaMask=rasterizeCwaMask(cwas,t,scratch),priorLevels=await rasterizeHighestTier(localUsdm,priorUsdmLevel,t,scratch),proposedLevels=await rasterizeHighestTier(proposal,proposalLevel,t,scratch),tolerance=buildPriorBoundaryToleranceMask(priorLevels,cwaMask,t),image=paintChangeRaster(cwaMask,priorLevels,proposedLevels,tolerance,t),next=await imageDataToObjectUrl(image),source=map.getSource('drought-change'),old=state.changeImageObjectUrl;source.updateImage({url:next,coordinates:t.coordinates});state.changeImageObjectUrl=next;releaseChangeObjectUrl(old);map.triggerRepaint();return true;}catch(error){console.error(error);if(manageLoading)showToast(`Unable to build week-to-week change: ${error.message}`,true,8500);return false;}finally{if(scratch){scratch.canvas.width=1;scratch.canvas.height=1;}state.changeLoading=false;if(manageLoading)setLoading(false);updateModePresentation();}}
 
+function getRecommendationsOfficeCodes(){return getSubmittedWfos();}
+function getRecommendationsRenderKey(){if(!state.payload)return'';const offices=getRecommendationsOfficeCodes();const stamps=offices.map(wfo=>{const record=state.records.get(wfo)||{};return`${wfo}:${record.status||''}:${record.submittedAt||''}`;}).join('|');return`${state.payload.cycleDate}|recommendations:${stamps}`;}
+function clearRecommendationsData(invalidate = true) {
+  if (invalidate) state.recommendationsCalculationVersion++;
+  state.recommendationsRenderKey = '';
+  state.recommendationsBaseDate = '';
+  const base = map.getSource('recommendations-usdm-base');
+  const redline = map.getSource('recommendations-redline');
+  if (base) base.setData({ type: 'FeatureCollection', features: [] });
+  if (redline) redline.setData({ type: 'FeatureCollection', features: [] });
+}
+
+function recommendationLevelText(level) {
+  return Number(level) >= 0 ? `D${Number(level)}` : 'NONE';
+}
+
+function mercatorXToLon(x) {
+  return Number(x) * 360 - 180;
+}
+
+function mercatorYToLat(y) {
+  const n = Math.PI * (1 - 2 * Number(y));
+  return Math.atan(Math.sinh(n)) * 180 / Math.PI;
+}
+
+function recommendationGridPoint(transform, x, y) {
+  const mx = transform.x0 + (Number(x) / transform.width) * (transform.x1 - transform.x0);
+  const my = transform.y0 + (Number(y) / transform.height) * (transform.y1 - transform.y0);
+  return [mercatorXToLon(mx), mercatorYToLat(my)];
+}
+
+function recommendationCellCenter(transform, x, y) {
+  return recommendationGridPoint(transform, Number(x) + 0.5, Number(y) + 0.5);
+}
+
+function recommendationEdgeKey(orientation, x, y) {
+  return ((Number(orientation) * RECOMMENDATIONS_EDGE_STRIDE + Number(y)) * RECOMMENDATIONS_EDGE_STRIDE) + Number(x);
+}
+
+function decodeRecommendationEdgeKey(key) {
+  const x = key % RECOMMENDATIONS_EDGE_STRIDE;
+  const q = Math.floor(key / RECOMMENDATIONS_EDGE_STRIDE);
+  const y = q % RECOMMENDATIONS_EDGE_STRIDE;
+  const orientation = Math.floor(q / RECOMMENDATIONS_EDGE_STRIDE);
+  return { orientation, x, y };
+}
+
+function buildRecommendationBoundaryEdges(levels, eligibleMask, transform, threshold) {
+  const { width, height } = transform;
+  const edges = new Set();
+  for (let y = 0; y < height; y++) {
+    const row = y * width;
+    for (let x = 0; x < width; x++) {
+      const i = row + x;
+      if (!eligibleMask[i]) continue;
+      const inside = levels[i] >= threshold;
+
+      if (x + 1 < width) {
+        const right = i + 1;
+        if (eligibleMask[right] && inside !== (levels[right] >= threshold)) {
+          
+          edges.add(recommendationEdgeKey(1, x + 1, y));
+        }
+      }
+      if (y + 1 < height) {
+        const down = i + width;
+        if (eligibleMask[down] && inside !== (levels[down] >= threshold)) {
+          
+          edges.add(recommendationEdgeKey(0, x, y + 1));
+        }
+      }
+    }
+  }
+  return edges;
+}
+
+function getLoadedRecommendationWaterFeatures(bounds) {
+  
+  
+  
+  
+  
+  try {
+    const style = map.getStyle();
+    const waterStyleLayer = (style.layers || []).find(layer => layer.id === 'water');
+    if (!waterStyleLayer || !waterStyleLayer.source) return [];
+    const options = waterStyleLayer['source-layer']
+      ? { sourceLayer: waterStyleLayer['source-layer'] }
+      : undefined;
+    const queried = map.querySourceFeatures(waterStyleLayer.source, options) || [];
+    const output = [];
+    queried.forEach(feature => {
+      const json = feature && typeof feature.toJSON === 'function' ? feature.toJSON() : feature;
+      if (!polygonFeatureOnly(json)) return;
+      const localized = localizeUsdmFeatureToBounds(json, bounds);
+      if (localized) output.push(localized);
+    });
+    return output;
+  } catch (error) {
+    console.warn('[DroughtRecommendations] water mask unavailable:', error);
+    return [];
+  }
+}
+
+function buildRecommendationEligibleMask(cwaMask, waterMask) {
+  const output = new Uint8Array(cwaMask.length);
+  for (let i = 0; i < output.length; i++) {
+    if (cwaMask[i] && !(waterMask && waterMask[i])) output[i] = 1;
+  }
+  return output;
+}
+
+function buildRecommendationThresholdToleranceMask(priorLevels, eligibleMask, transform) {
+  const { width, height } = transform;
+  const pixelCount = width * height;
+  const boundaryBits = new Uint8Array(pixelCount);
+
+  
+  
+  
+  
+  
+  const markThresholds = (aIndex, bIndex) => {
+    if (!eligibleMask[aIndex] || !eligibleMask[bIndex]) return;
+    const a = priorLevels[aIndex];
+    const b = priorLevels[bIndex];
+    if (a === b) return;
+    for (let threshold = 0; threshold <= 4; threshold++) {
+      if ((a >= threshold) !== (b >= threshold)) {
+        const bit = 1 << threshold;
+        boundaryBits[aIndex] |= bit;
+        boundaryBits[bIndex] |= bit;
+      }
+    }
+  };
+
+  for (let y = 0; y < height; y++) {
+    const row = y * width;
+    for (let x = 0; x < width; x++) {
+      const i = row + x;
+      if (!eligibleMask[i]) continue;
+      if (x + 1 < width) markThresholds(i, i + 1);
+      if (y + 1 < height) markThresholds(i, i + width);
+    }
+  }
+
+  const toleranceMeters = RECOMMENDATIONS_BOUNDARY_TOLERANCE_MILES * 1609.344;
+  const maxDx = Math.max(1, Math.ceil(toleranceMeters / Math.max(1, transform.metersPerPixelX)));
+  const maxDy = Math.max(1, Math.ceil(toleranceMeters / Math.max(1, transform.metersPerPixelY)));
+  const offsets = [];
+  for (let dy = -maxDy; dy <= maxDy; dy++) {
+    for (let dx = -maxDx; dx <= maxDx; dx++) {
+      const metersX = dx * transform.metersPerPixelX;
+      const metersY = dy * transform.metersPerPixelY;
+      if (Math.hypot(metersX, metersY) <= toleranceMeters + Math.max(transform.metersPerPixelX, transform.metersPerPixelY) * 0.5) {
+        offsets.push([dx, dy]);
+      }
+    }
+  }
+
+  const toleranceBits = new Uint8Array(pixelCount);
+  for (let y = 0; y < height; y++) {
+    const row = y * width;
+    for (let x = 0; x < width; x++) {
+      const i = row + x;
+      const bits = boundaryBits[i];
+      if (!bits) continue;
+      for (const [dx, dy] of offsets) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+        const ni = ny * width + nx;
+        if (eligibleMask[ni]) toleranceBits[ni] |= bits;
+      }
+    }
+  }
+  return toleranceBits;
+}
+
+function recommendationEdgeWithinTolerance(edgeKey, threshold, toleranceBits, transform) {
+  const { orientation, x, y } = decodeRecommendationEdgeKey(edgeKey);
+  const bit = 1 << threshold;
+  const { width, height } = transform;
+  const test = (cx, cy) => {
+    if (cx < 0 || cx >= width || cy < 0 || cy >= height) return false;
+    return !!(toleranceBits[cy * width + cx] & bit);
+  };
+  return orientation === 1
+    ? test(x - 1, y) || test(x, y)
+    : test(x, y - 1) || test(x, y);
+}
+
+function isMeaningfulRecommendationChange(index, prior, proposed, toleranceBits) {
+  if (prior === proposed) return false;
+  const low = Math.min(prior, proposed);
+  const high = Math.max(prior, proposed);
+  const bits = toleranceBits[index] || 0;
+  
+  
+  
+  for (let threshold = low + 1; threshold <= high; threshold++) {
+    if (threshold < 0 || threshold > 4) continue;
+    if (!(bits & (1 << threshold))) return true;
+  }
+  return false;
+}
+
+function recommendationEdgeEndpoints(key) {
+  const { orientation, x, y } = decodeRecommendationEdgeKey(key);
+  return orientation === 1
+    ? [[x, y], [x, y + 1]]
+    : [[x, y], [x + 1, y]];
+}
+
+
+function recommendationEdgeAdjacentCellIndices(edgeKey, transform) {
+  const { orientation, x, y } = decodeRecommendationEdgeKey(edgeKey);
+  const { width, height } = transform;
+  const output = [];
+  const add = (cx, cy) => {
+    if (cx < 0 || cx >= width || cy < 0 || cy >= height) return;
+    output.push(cy * width + cx);
+  };
+  if (orientation === 1) {
+    add(x - 1, y);
+    add(x, y);
+  } else {
+    add(x, y - 1);
+    add(x, y);
+  }
+  return output;
+}
+
+function recommendationCellCrossesThreshold(index, threshold, eligibleMask, priorLevels, proposedLevels) {
+  if (index < 0 || !eligibleMask[index]) return false;
+  const prior = priorLevels[index];
+  const proposed = proposedLevels[index];
+  return (prior >= threshold) !== (proposed >= threshold);
+}
+
+function recommendationCellMeaningfullyCrossesThreshold(index, threshold, eligibleMask, priorLevels, proposedLevels, toleranceBits) {
+  if (!recommendationCellCrossesThreshold(index, threshold, eligibleMask, priorLevels, proposedLevels)) return false;
+  return !(toleranceBits[index] & (1 << threshold));
+}
+
+function recommendationEdgeTouchesThresholdChange(edgeKey, threshold, eligibleMask, priorLevels, proposedLevels, transform) {
+  return recommendationEdgeAdjacentCellIndices(edgeKey, transform).some(index =>
+    recommendationCellCrossesThreshold(index, threshold, eligibleMask, priorLevels, proposedLevels)
+  );
+}
+
+function recommendationEdgeTouchesMeaningfulThresholdChange(edgeKey, threshold, eligibleMask, priorLevels, proposedLevels, toleranceBits, transform) {
+  return recommendationEdgeAdjacentCellIndices(edgeKey, transform).some(index =>
+    recommendationCellMeaningfullyCrossesThreshold(
+      index, threshold, eligibleMask, priorLevels, proposedLevels, toleranceBits
+    )
+  );
+}
+
+function expandRecommendationContoursToWholeLines(edgeKeys, materialEdgeKeys, transform) {
+  const keys = Array.from(edgeKeys || []);
+  const material = materialEdgeKeys instanceof Set ? materialEdgeKeys : new Set(materialEdgeKeys || []);
+  if (!keys.length || !material.size) return new Set();
+
+  
+  
+  
+  
+  const width1 = transform.width + 1;
+  const endpointKey = (x, y) => y * width1 + x;
+  const edges = keys.map(key => {
+    const [a, b] = recommendationEdgeEndpoints(key);
+    return { key, ak: endpointKey(a[0], a[1]), bk: endpointKey(b[0], b[1]) };
+  });
+
+  const adjacency = new Map();
+  const addAdjacency = (pointKey, edgeIndex) => {
+    if (!adjacency.has(pointKey)) adjacency.set(pointKey, []);
+    adjacency.get(pointKey).push(edgeIndex);
+  };
+  edges.forEach((edge, index) => {
+    addAdjacency(edge.ak, index);
+    addAdjacency(edge.bk, index);
+  });
+
+  const visited = new Uint8Array(edges.length);
+  const queue = new Int32Array(edges.length);
+  const output = new Set();
+
+  for (let seed = 0; seed < edges.length; seed++) {
+    if (visited[seed]) continue;
+    let head = 0, tail = 0;
+    queue[tail++] = seed;
+    visited[seed] = 1;
+    const component = [];
+    let hasMaterialEdge = false;
+
+    while (head < tail) {
+      const edgeIndex = queue[head++];
+      const edge = edges[edgeIndex];
+      component.push(edge.key);
+      if (material.has(edge.key)) hasMaterialEdge = true;
+
+      const neighbors = [
+        ...(adjacency.get(edge.ak) || []),
+        ...(adjacency.get(edge.bk) || [])
+      ];
+      for (const nextIndex of neighbors) {
+        if (visited[nextIndex]) continue;
+        visited[nextIndex] = 1;
+        queue[tail++] = nextIndex;
+      }
+    }
+
+    if (hasMaterialEdge) component.forEach(key => output.add(key));
+  }
+
+  return output;
+}
+
+function smoothRecommendationCoordinates(coordinates, passes = RECOMMENDATIONS_LINE_SMOOTH_PASSES) {
+  let points = Array.isArray(coordinates) ? coordinates.map(coord => [Number(coord[0]), Number(coord[1])]) : [];
+  if (points.length < 3) return points;
+
+  
+  
+  
+  for (let pass = 0; pass < Math.max(0, Number(passes) || 0); pass++) {
+    if (points.length < 3) break;
+    const next = [points[0]];
+    for (let i = 0; i < points.length - 1; i++) {
+      const a = points[i], b = points[i + 1];
+      next.push([0.75 * a[0] + 0.25 * b[0], 0.75 * a[1] + 0.25 * b[1]]);
+      next.push([0.25 * a[0] + 0.75 * b[0], 0.25 * a[1] + 0.75 * b[1]]);
+    }
+    next.push(points[points.length - 1]);
+    points = next;
+  }
+  return points;
+}
+
+function mergeRecommendationEdges(edgeKeys, transform) {
+  const keys = Array.from(edgeKeys || []);
+  if (!keys.length) return [];
+
+  const width1 = transform.width + 1;
+  const endpointKey = (x, y) => y * width1 + x;
+  const edges = keys.map(key => {
+    const [a, b] = recommendationEdgeEndpoints(key);
+    return { a, b, ak: endpointKey(a[0], a[1]), bk: endpointKey(b[0], b[1]) };
+  });
+  const adjacency = new Map();
+  const addAdj = (pointKey, edgeIndex) => {
+    if (!adjacency.has(pointKey)) adjacency.set(pointKey, []);
+    adjacency.get(pointKey).push(edgeIndex);
+  };
+  edges.forEach((edge, index) => {
+    addAdj(edge.ak, index);
+    addAdj(edge.bk, index);
+  });
+
+  const visited = new Uint8Array(edges.length);
+  const output = [];
+  for (let seed = 0; seed < edges.length; seed++) {
+    if (visited[seed]) continue;
+    const first = edges[seed];
+    const aDegree = (adjacency.get(first.ak) || []).length;
+    const bDegree = (adjacency.get(first.bk) || []).length;
+    const startAtA = aDegree !== 2 || bDegree === 2;
+    let currentPoint = startAtA ? first.a : first.b;
+    let currentKey = startAtA ? first.ak : first.bk;
+    const startKey = currentKey;
+    const points = [currentPoint];
+    let currentEdge = seed;
+    let edgeCount = 0;
+
+    while (currentEdge != null && !visited[currentEdge]) {
+      visited[currentEdge] = 1;
+      edgeCount++;
+      const edge = edges[currentEdge];
+      const nextPoint = currentKey === edge.ak ? edge.b : edge.a;
+      const nextKey = currentKey === edge.ak ? edge.bk : edge.ak;
+      points.push(nextPoint);
+      currentPoint = nextPoint;
+      currentKey = nextKey;
+      if (currentKey === startKey) break;
+
+      const candidates = (adjacency.get(currentKey) || []).filter(index => !visited[index]);
+      if (!candidates.length) break;
+      
+      
+      currentEdge = candidates[0];
+    }
+
+    if (edgeCount < RECOMMENDATIONS_MIN_LINE_EDGES || points.length < 2) continue;
+    let feature = {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'LineString',
+        coordinates: points.map(point => recommendationGridPoint(transform, point[0], point[1]))
+      }
+    };
+    if (points.length > 6) {
+      try {
+        feature = turf.simplify(feature, {
+          tolerance: RECOMMENDATIONS_LINE_SIMPLIFY_DEGREES,
+          highQuality: true,
+          mutate: false
+        });
+      } catch (_) {}
+    }
+    if (feature.geometry && Array.isArray(feature.geometry.coordinates) && feature.geometry.coordinates.length >= 2) {
+      output.push(smoothRecommendationCoordinates(feature.geometry.coordinates));
+    }
+  }
+  return output;
+}
+
+function buildRecommendationLabels(eligibleMask, priorLevels, proposedLevels, toleranceBits, transform) {
+  const { width, height } = transform;
+  const total = width * height;
+  const visited = new Uint8Array(total);
+  const queue = new Int32Array(total);
+  const components = [];
+  const sameTransition = (index, prior, proposed) =>
+    eligibleMask[index] && !visited[index] &&
+    priorLevels[index] === prior && proposedLevels[index] === proposed &&
+    isMeaningfulRecommendationChange(index, prior, proposed, toleranceBits);
+
+  for (let start = 0; start < total; start++) {
+    if (!eligibleMask[start] || visited[start]) continue;
+    const prior = priorLevels[start];
+    const proposed = proposedLevels[start];
+    if (!isMeaningfulRecommendationChange(start, prior, proposed, toleranceBits)) {
+      visited[start] = 1;
+      continue;
+    }
+
+    let head = 0, tail = 0;
+    queue[tail++] = start;
+    visited[start] = 1;
+    let sumX = 0, sumY = 0;
+
+    while (head < tail) {
+      const i = queue[head++];
+      const y = Math.floor(i / width);
+      const x = i - y * width;
+      sumX += x + 0.5;
+      sumY += y + 0.5;
+
+      if (x > 0) {
+        const n = i - 1;
+        if (sameTransition(n, prior, proposed)) { visited[n] = 1; queue[tail++] = n; }
+      }
+      if (x + 1 < width) {
+        const n = i + 1;
+        if (sameTransition(n, prior, proposed)) { visited[n] = 1; queue[tail++] = n; }
+      }
+      if (y > 0) {
+        const n = i - width;
+        if (sameTransition(n, prior, proposed)) { visited[n] = 1; queue[tail++] = n; }
+      }
+      if (y + 1 < height) {
+        const n = i + width;
+        if (sameTransition(n, prior, proposed)) { visited[n] = 1; queue[tail++] = n; }
+      }
+    }
+
+    if (tail < RECOMMENDATIONS_MIN_COMPONENT_PIXELS) continue;
+    const meanX = sumX / tail;
+    const meanY = sumY / tail;
+    let best = queue[0];
+    let bestDistance = Infinity;
+    for (let q = 0; q < tail; q++) {
+      const i = queue[q];
+      const y = Math.floor(i / width);
+      const x = i - y * width;
+      const distance = (x + 0.5 - meanX) ** 2 + (y + 0.5 - meanY) ** 2;
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = i;
+      }
+    }
+    const by = Math.floor(best / width);
+    const bx = best - by * width;
+    components.push({
+      size: tail,
+      prior,
+      proposed,
+      coordinates: recommendationCellCenter(transform, bx, by)
+    });
+  }
+
+  components.sort((a, b) => b.size - a.size);
+  return components.slice(0, RECOMMENDATIONS_MAX_LABELS).map(component => ({
+    type: 'Feature',
+    properties: {
+      kind: 'label',
+      size: component.size,
+      prior: component.prior,
+      proposed: component.proposed,
+      direction: component.proposed > component.prior ? 'degradation' : 'improvement',
+      label: `${recommendationLevelText(component.prior)} → ${recommendationLevelText(component.proposed)}`
+    },
+    geometry: { type: 'Point', coordinates: component.coordinates }
+  }));
+}
+
+function buildWholeCategoryChangeEdges(eligibleMask, cwaMask, priorLevels, proposedLevels, toleranceBits, transform) {
+  const { width, height } = transform;
+  const total = width * height;
+  const visited = new Uint8Array(total);
+  const queue = new Int32Array(total);
+  const memberStamp = new Uint32Array(total);
+  let stamp = 0;
+  const output = new Set();
+
+  
+  
+  
+  
+  
+  const priorEdgesByThreshold = [];
+  const proposedEdgesByThreshold = [];
+  for (let threshold = 0; threshold <= 4; threshold++) {
+    priorEdgesByThreshold[threshold] = buildRecommendationBoundaryEdges(priorLevels, eligibleMask, transform, threshold);
+    proposedEdgesByThreshold[threshold] = buildRecommendationBoundaryEdges(proposedLevels, eligibleMask, transform, threshold);
+  }
+
+  
+  
+  
+  const sameTransition = (index, prior, proposed) =>
+    eligibleMask[index] && !visited[index] &&
+    priorLevels[index] === prior && proposedLevels[index] === proposed;
+
+  for (let start = 0; start < total; start++) {
+    if (!eligibleMask[start] || visited[start]) continue;
+    const prior = priorLevels[start];
+    const proposed = proposedLevels[start];
+    if (prior === proposed) {
+      visited[start] = 1;
+      continue;
+    }
+
+    let head = 0, tail = 0;
+    queue[tail++] = start;
+    visited[start] = 1;
+    const cells = [];
+
+    while (head < tail) {
+      const i = queue[head++];
+      cells.push(i);
+      const y = Math.floor(i / width);
+      const x = i - y * width;
+
+      if (x > 0) {
+        const n = i - 1;
+        if (sameTransition(n, prior, proposed)) { visited[n] = 1; queue[tail++] = n; }
+      }
+      if (x + 1 < width) {
+        const n = i + 1;
+        if (sameTransition(n, prior, proposed)) { visited[n] = 1; queue[tail++] = n; }
+      }
+      if (y > 0) {
+        const n = i - width;
+        if (sameTransition(n, prior, proposed)) { visited[n] = 1; queue[tail++] = n; }
+      }
+      if (y + 1 < height) {
+        const n = i + width;
+        if (sameTransition(n, prior, proposed)) { visited[n] = 1; queue[tail++] = n; }
+      }
+    }
+
+    if (cells.length < RECOMMENDATIONS_MIN_COMPONENT_PIXELS) continue;
+
+    stamp++;
+    if (stamp === 0xffffffff) {
+      memberStamp.fill(0);
+      stamp = 1;
+    }
+    cells.forEach(i => { memberStamp[i] = stamp; });
+
+    const edgeTouchesComponent = edgeKey =>
+      recommendationEdgeAdjacentCellIndices(edgeKey, transform).some(index => memberStamp[index] === stamp);
+
+    const low = Math.min(prior, proposed);
+    const high = Math.max(prior, proposed);
+    for (let threshold = low + 1; threshold <= high; threshold++) {
+      if (threshold < 0 || threshold > 4) continue;
+
+      
+      
+      
+      const bit = 1 << threshold;
+      const thresholdIsMaterial = cells.some(index =>
+        recommendationCellCrossesThreshold(index, threshold, eligibleMask, priorLevels, proposedLevels) &&
+        !(toleranceBits[index] & bit)
+      );
+      if (!thresholdIsMaterial) continue;
+
+      
+      
+      
+      let proposedSurvives = false;
+      for (const edgeKey of proposedEdgesByThreshold[threshold]) {
+        if (edgeTouchesComponent(edgeKey)) {
+          proposedSurvives = true;
+          break;
+        }
+      }
+      if (proposedSurvives) continue;
+
+      for (const edgeKey of priorEdgesByThreshold[threshold]) {
+        if (edgeTouchesComponent(edgeKey)) output.add(edgeKey);
+      }
+    }
+  }
+
+  return output;
+}
+
+function buildRecommendationsRedline(eligibleMask, cwaMask, priorLevels, proposedLevels, toleranceBits, transform) {
+  const features = [];
+  for (let threshold = 0; threshold <= 4; threshold++) {
+    const allProposedEdges = buildRecommendationBoundaryEdges(proposedLevels, eligibleMask, transform, threshold);
+
+    
+    
+    
+    
+    
+    const candidateEdges = new Set();
+    allProposedEdges.forEach(key => {
+      if (recommendationEdgeTouchesThresholdChange(
+        key, threshold, eligibleMask, priorLevels, proposedLevels, transform
+      )) {
+        candidateEdges.add(key);
+      }
+    });
+
+    
+    
+    
+    const materiallyDisplacedEdges = new Set();
+    candidateEdges.forEach(key => {
+      if (!recommendationEdgeWithinTolerance(key, threshold, toleranceBits, transform)) {
+        materiallyDisplacedEdges.add(key);
+      }
+    });
+
+    
+    
+    const proposedVisible = expandRecommendationContoursToWholeLines(
+      candidateEdges, materiallyDisplacedEdges, transform
+    );
+
+    mergeRecommendationEdges(proposedVisible, transform).forEach(coordinates => {
+      features.push({
+        type: 'Feature',
+        properties: { kind: 'proposed', category: `D${threshold}` },
+        geometry: { type: 'LineString', coordinates }
+      });
+    });
+  }
+
+  
+  
+  
+  const removedContourEdges = buildWholeCategoryChangeEdges(
+    eligibleMask, cwaMask, priorLevels, proposedLevels, toleranceBits, transform
+  );
+  mergeRecommendationEdges(removedContourEdges, transform).forEach(coordinates => {
+    features.push({
+      type: 'Feature',
+      properties: { kind: 'proposed', category: 'transition', removedPriorContour: true },
+      geometry: { type: 'LineString', coordinates }
+    });
+  });
+
+  features.push(...buildRecommendationLabels(eligibleMask, priorLevels, proposedLevels, toleranceBits, transform));
+  return { type: 'FeatureCollection', features };
+}
+function recommendationsBaseCollection(localUsdm,enabledWfos){const features=[];const clipCwas=(enabledWfos||[]).map(wfo=>state.clipCwaByWfo.get(wfo)||state.cwaByWfo.get(wfo)).filter(Boolean);(localUsdm||[]).forEach(feature=>{const recLevel=priorUsdmLevel(feature);if(!Number.isInteger(recLevel))return;clipCwas.forEach(cwa=>{const clipped=clipToCwa(feature,cwa);if(!clipped||!clipped.geometry)return;clipped.properties={...(feature.properties||{}),recLevel};features.push(clipped);});});return{type:'FeatureCollection',features};}
+async function renderRecommendationsComposite(manageLoading=true){if(!state.payload||!map.getSource('recommendations-usdm-base')||!map.getSource('recommendations-redline'))return false;const submitted=getRecommendationsOfficeCodes();if(!submitted.length){clearRecommendationsData();if(manageLoading)showToast('No offices have submitted for this Tuesday.',true,6500);return false;}const renderKey=getRecommendationsRenderKey();if(renderKey&&renderKey===state.recommendationsRenderKey)return true;const calculationVersion=++state.recommendationsCalculationVersion;const baselineDate=getUsdmTraceBaselineDate(state.payload.cycleDate);state.recommendationsLoading=true;updateModePresentation();if(manageLoading)setLoading(true,`Building recommendations redline from ${formatCycleDate(baselineDate)} USDM…`);let scratch=null;try{const bounds=getChangeRasterBounds(submitted),t=buildRasterGeometry(bounds),priorUsdm=await loadUsdmPolygonsForChange(baselineDate);if(calculationVersion!==state.recommendationsCalculationVersion)return false;const localUsdm=priorUsdm.features.map(f=>localizeUsdmFeatureToBounds(f,bounds)).filter(Boolean),cwas=submitted.map(wfo=>state.cwaByWfo.get(wfo)).filter(Boolean),proposal=[];submitted.forEach(wfo=>proposal.push(...(state.displayByWfo.get(wfo)||[])));scratch=makeScratchCanvas(t.width,t.height);const cwaMask=rasterizeCwaMask(cwas,t,scratch),priorLevels=await rasterizeHighestTier(localUsdm,priorUsdmLevel,t,scratch);if(calculationVersion!==state.recommendationsCalculationVersion)return false;const proposedLevels=await rasterizeHighestTier(proposal,proposalLevel,t,scratch);if(calculationVersion!==state.recommendationsCalculationVersion)return false;await waitForMapIdle(1800);const waterFeatures=getLoadedRecommendationWaterFeatures(bounds),waterMask=waterFeatures.length?rasterizePolygonMask(waterFeatures,t,scratch):new Uint8Array(cwaMask.length),eligibleMask=buildRecommendationEligibleMask(cwaMask,waterMask),toleranceBits=buildRecommendationThresholdToleranceMask(priorLevels,eligibleMask,t),redline=buildRecommendationsRedline(eligibleMask,cwaMask,priorLevels,proposedLevels,toleranceBits,t);if(calculationVersion!==state.recommendationsCalculationVersion)return false;map.getSource('recommendations-usdm-base').setData(recommendationsBaseCollection(localUsdm,submitted));map.getSource('recommendations-redline').setData(redline);state.recommendationsRenderKey=renderKey;state.recommendationsBaseDate=baselineDate;map.triggerRepaint();return true;}catch(error){console.error(error);if(calculationVersion===state.recommendationsCalculationVersion){clearRecommendationsData(false);if(manageLoading)showToast(`Unable to build recommendations redline: ${error.message}`,true,8500);}return false;}finally{if(scratch&&scratch.canvas){scratch.canvas.width=1;scratch.canvas.height=1;}if(calculationVersion===state.recommendationsCalculationVersion){state.recommendationsLoading=false;if(manageLoading)setLoading(false);updateModePresentation();}}}
+
 function formatCycleStampDate(iso){const[y,m,d]=iso.split('-').map(Number);return`${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}/${String(y).slice(-2)}`;}
-function getExportStampText(){const offices=getSubmittedWfos(),dateText=formatCycleStampDate(state.payload.cycleDate),officeText=offices.length?` (${offices.join(', ')})`:'';if(state.exportProduct==='change'){const prior=formatCycleStampDate(getUsdmTraceBaselineDate(state.payload.cycleDate));return{title:'WEEK-TO-WEEK DROUGHT CHANGE',detail:`USDM ${prior} → Proposal ${dateText}${officeText}`};}return{title:'PROPOSED DROUGHT UPDATES',detail:`Tue ${dateText}${officeText}`};}
-function updateExportStampPreview(){const stamp=getExportStampText();dom.exportStampTitle.textContent=stamp.title;dom.exportStampDetail.textContent=stamp.detail;renderLegendInto(dom.exportLegendPreview,state.exportProduct==='change'?'change':'drought',true);}
+function getExportStampText(){const offices=getSubmittedWfos(),dateText=formatCycleStampDate(state.payload.cycleDate),officeText=offices.length?` (${offices.join(', ')})`:'';if(state.exportProduct==='change'){const prior=formatCycleStampDate(getUsdmTraceBaselineDate(state.payload.cycleDate));return{title:'WEEK-TO-WEEK DROUGHT CHANGE',detail:`USDM ${prior} → Proposal ${dateText}${officeText}`};}if(state.exportProduct==='recommendations'){const prior=formatCycleStampDate(getUsdmTraceBaselineDate(state.payload.cycleDate));return{title:'RECOMMENDED USDM CHANGES',detail:`Base: USDM ${prior} · Dashed: Proposal ${dateText}${officeText}`};}return{title:'PROPOSED DROUGHT UPDATES',detail:`Tue ${dateText}${officeText}`};}
+function updateExportStampPreview(){const stamp=getExportStampText();dom.exportStampTitle.textContent=stamp.title;dom.exportStampDetail.textContent=stamp.detail;const kind=state.exportProduct==='change'?'change':(state.exportProduct==='recommendations'?'recommendations':'drought');renderLegendInto(dom.exportLegendPreview,kind,true);}
 function layoutExportViewfinder(){if(!state.exporting)return;const wrap=document.querySelector('.map-wrap'),rect=wrap.getBoundingClientRect(),aspect=EXPORT_WIDTH/EXPORT_HEIGHT,marginX=28,marginTop=58,marginBottom=26,maxW=Math.max(240,rect.width-marginX*2),maxH=Math.max(140,rect.height-marginTop-marginBottom);let width=maxW,height=width/aspect;if(height>maxH){height=maxH;width=height*aspect;}dom.exportViewfinder.style.width=`${Math.round(width)}px`;dom.exportViewfinder.style.height=`${Math.round(height)}px`;dom.exportViewfinder.style.left=`${Math.round((rect.width-width)/2)}px`;dom.exportViewfinder.style.top=`${Math.round((rect.height-height)/2)}px`;}
-function startExportMode(){if(state.exporting)return;state.exportProduct=state.changeView?'change':'proposal';state.exporting=true;state.exportRestore={pixelRatio:typeof map.getPixelRatio==='function'?map.getPixelRatio():window.devicePixelRatio};setLayerVisibility('current-usdm-layer',false);applyAnalysisViewVisibility();if(typeof map.setPixelRatio==='function')map.setPixelRatio(Math.max(2,window.devicePixelRatio||1));document.body.classList.add('export-composing');dom.exportOverlay.classList.remove('hidden');updateExportStampPreview();layoutExportViewfinder();window.addEventListener('resize',layoutExportViewfinder);dom.exportBtn.disabled=true;requestAnimationFrame(()=>map.resize());}
+function startExportMode(){if(state.exporting)return;state.exportProduct=state.recommendationsView?'recommendations':(state.changeView?'change':'proposal');state.exporting=true;state.exportRestore={pixelRatio:typeof map.getPixelRatio==='function'?map.getPixelRatio():window.devicePixelRatio};setLayerVisibility('current-usdm-layer',false);applyAnalysisViewVisibility();if(typeof map.setPixelRatio==='function')map.setPixelRatio(Math.max(2,window.devicePixelRatio||1));document.body.classList.add('export-composing');dom.exportOverlay.classList.remove('hidden');updateExportStampPreview();layoutExportViewfinder();window.addEventListener('resize',layoutExportViewfinder);dom.exportBtn.disabled=true;requestAnimationFrame(()=>map.resize());}
 function stopExportMode(){if(!state.exporting)return;state.exporting=false;window.removeEventListener('resize',layoutExportViewfinder);dom.exportOverlay.classList.add('hidden');document.body.classList.remove('export-composing');if(typeof map.setPixelRatio==='function'&&state.exportRestore&&Number.isFinite(state.exportRestore.pixelRatio))map.setPixelRatio(state.exportRestore.pixelRatio);state.exportRestore=null;state.exportProduct=null;setLayerVisibility('current-usdm-layer',state.usdm);applyAnalysisViewVisibility();updateModePresentation();dom.exportBtn.disabled=false;map.resize();}
 function waitForMapIdle(timeoutMs=5000){return new Promise(resolve=>{if(map.loaded()&&!map.isMoving()&&!map.isZooming()&&!map.isRotating()){requestAnimationFrame(()=>requestAnimationFrame(resolve));return;}let done=false;const finish=()=>{if(done)return;done=true;clearTimeout(timer);map.off('idle',finish);resolve();};const timer=setTimeout(finish,timeoutMs);map.once('idle',finish);});}
 function roundedRectPath(ctx,x,y,width,height,radius){const r=Math.min(radius,width/2,height/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+width-r,y);ctx.quadraticCurveTo(x+width,y,x+width,y+r);ctx.lineTo(x+width,y+height-r);ctx.quadraticCurveTo(x+width,y+height,x+width-r,y+height);ctx.lineTo(x+r,y+height);ctx.quadraticCurveTo(x,y+height,x,y+height-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
 function drawExportStamp(ctx){const stamp=getExportStampText(),x=18,bottom=18,padX=11,boxH=52,titleY=EXPORT_HEIGHT-bottom-33,detailY=EXPORT_HEIGHT-bottom-14;ctx.save();ctx.textAlign='left';ctx.textBaseline='middle';ctx.font='800 16px Roboto, Arial, sans-serif';const titleW=ctx.measureText(stamp.title).width;ctx.font='700 12px Roboto, Arial, sans-serif';const detailW=ctx.measureText(stamp.detail).width,boxW=Math.ceil(Math.max(titleW,detailW)+padX*2),boxY=EXPORT_HEIGHT-bottom-boxH;roundedRectPath(ctx,x,boxY,boxW,boxH,6);ctx.fillStyle='rgba(29,23,19,.88)';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.42)';ctx.stroke();ctx.fillStyle='#fff';ctx.font='800 16px Roboto, Arial, sans-serif';ctx.fillText(stamp.title,x+padX,titleY);ctx.fillStyle='rgba(255,255,255,.82)';ctx.font='700 12px Roboto, Arial, sans-serif';ctx.fillText(stamp.detail,x+padX,detailY);ctx.restore();}
-function drawExportLegend(ctx){const kind=state.exportProduct==='change'?'change':'drought',legend=getLegendDefinition(kind),rows=legend.rows,xPad=13,top=18,rowH=kind==='change'?20:22,titleH=29,boxW=kind==='change'?280:246,boxH=titleH+rows.length*rowH+12,x=EXPORT_WIDTH-18-boxW;ctx.save();roundedRectPath(ctx,x,top,boxW,boxH,6);ctx.fillStyle='rgba(29,23,19,.90)';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.42)';ctx.stroke();ctx.fillStyle='#fff';ctx.font='800 14px Roboto, Arial, sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(legend.title.toUpperCase(),x+xPad,top+14);rows.forEach((row,index)=>{const y=top+titleH+index*rowH+3;ctx.fillStyle=row.color;ctx.fillRect(x+xPad,y,27,13);ctx.strokeStyle=row.color.toLowerCase()==='#ffffff'?'rgba(40,40,40,.9)':'rgba(255,255,255,.62)';ctx.strokeRect(x+xPad+.5,y+.5,26,12);ctx.fillStyle='rgba(255,255,255,.90)';ctx.font='700 11.5px Roboto, Arial, sans-serif';ctx.fillText(`${row.code?row.code+'  ':''}${row.label}`,x+xPad+36,y+7);});ctx.restore();}
+function drawExportLegend(ctx){const kind=state.exportProduct==='change'?'change':(state.exportProduct==='recommendations'?'recommendations':'drought'),legend=getLegendDefinition(kind),rows=legend.rows,xPad=13,top=18,rowH=kind==='change'?20:22,titleH=29,boxW=kind==='change'?280:(kind==='recommendations'?330:246),boxH=titleH+rows.length*rowH+12,x=EXPORT_WIDTH-18-boxW;ctx.save();roundedRectPath(ctx,x,top,boxW,boxH,6);ctx.fillStyle='rgba(29,23,19,.90)';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.42)';ctx.stroke();ctx.fillStyle='#fff';ctx.font='800 14px Roboto, Arial, sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(legend.title.toUpperCase(),x+xPad,top+14);rows.forEach((row,index)=>{const y=top+titleH+index*rowH+3;if(row.lineStyle){const cy=y+7;ctx.save();ctx.lineCap='round';ctx.strokeStyle='#fff';ctx.lineWidth=5;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(x+xPad,cy);ctx.lineTo(x+xPad+27,cy);ctx.stroke();ctx.strokeStyle='#111';ctx.lineWidth=2.5;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(x+xPad,cy);ctx.lineTo(x+xPad+27,cy);ctx.stroke();ctx.restore();ctx.fillStyle='rgba(255,255,255,.90)';ctx.font='700 11.5px Roboto, Arial, sans-serif';ctx.fillText(row.label,x+xPad+36,y+7);return;}ctx.fillStyle=row.color;ctx.fillRect(x+xPad,y,27,13);ctx.strokeStyle=row.color.toLowerCase()==='#ffffff'?'rgba(40,40,40,.9)':'rgba(255,255,255,.62)';ctx.strokeRect(x+xPad+.5,y+.5,26,12);ctx.fillStyle='rgba(255,255,255,.90)';ctx.font='700 11.5px Roboto, Arial, sans-serif';ctx.fillText(`${row.code?row.code+'  ':''}${row.label}`,x+xPad+36,y+7);});ctx.restore();}
 function drawExportAttribution(ctx){const inner=map.getContainer().querySelector('.maplibregl-ctrl-attrib-inner'),text=inner?String(inner.textContent||'').replace(/\s+/g,' ').trim():'';if(!text)return;ctx.save();ctx.font='500 8px Arial, sans-serif';ctx.textAlign='right';ctx.textBaseline='bottom';const x=EXPORT_WIDTH-8,y=EXPORT_HEIGHT-6,width=ctx.measureText(text).width+8;ctx.fillStyle='rgba(29,23,19,.72)';ctx.fillRect(x-width,y-12,width,13);ctx.fillStyle='rgba(255,255,255,.76)';ctx.fillText(text,x-4,y-2);ctx.restore();}
-async function downloadExportPng(){if(!state.exporting)return;dom.exportDownloadBtn.disabled=true;dom.exportDownloadBtn.textContent='Rendering…';try{await waitForMapIdle();const source=map.getCanvas(),canvasRect=source.getBoundingClientRect(),frameRect=dom.exportViewfinder.getBoundingClientRect(),scaleX=source.width/canvasRect.width,scaleY=source.height/canvasRect.height,sx=(frameRect.left-canvasRect.left)*scaleX,sy=(frameRect.top-canvasRect.top)*scaleY,sw=frameRect.width*scaleX,sh=frameRect.height*scaleY;const final=document.createElement('canvas');final.width=EXPORT_WIDTH*EXPORT_SCALE;final.height=EXPORT_HEIGHT*EXPORT_SCALE;const ctx=final.getContext('2d');ctx.scale(EXPORT_SCALE,EXPORT_SCALE);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(source,sx,sy,sw,sh,0,0,EXPORT_WIDTH,EXPORT_HEIGHT);drawExportStamp(ctx);drawExportLegend(ctx);drawExportAttribution(ctx);const blob=await new Promise((resolve,reject)=>final.toBlob(result=>result?resolve(result):reject(new Error('PNG encoder returned no data.')),'image/png'));const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=state.exportProduct==='change'?`drought_change_${state.payload.cycleDate}.png`:`proposed_drought_updates_${state.payload.cycleDate}.png`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);showToast(`PNG exported · ${EXPORT_WIDTH*EXPORT_SCALE}×${EXPORT_HEIGHT*EXPORT_SCALE}`);}catch(error){console.error(error);showToast(`Export failed: ${error.message}`,true,9000);}finally{dom.exportDownloadBtn.disabled=false;dom.exportDownloadBtn.textContent='Download PNG';}}
+async function downloadExportPng(){if(!state.exporting)return;dom.exportDownloadBtn.disabled=true;dom.exportDownloadBtn.textContent='Rendering…';try{await waitForMapIdle();const source=map.getCanvas(),canvasRect=source.getBoundingClientRect(),frameRect=dom.exportViewfinder.getBoundingClientRect(),scaleX=source.width/canvasRect.width,scaleY=source.height/canvasRect.height,sx=(frameRect.left-canvasRect.left)*scaleX,sy=(frameRect.top-canvasRect.top)*scaleY,sw=frameRect.width*scaleX,sh=frameRect.height*scaleY;const final=document.createElement('canvas');final.width=EXPORT_WIDTH*EXPORT_SCALE;final.height=EXPORT_HEIGHT*EXPORT_SCALE;const ctx=final.getContext('2d');ctx.scale(EXPORT_SCALE,EXPORT_SCALE);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(source,sx,sy,sw,sh,0,0,EXPORT_WIDTH,EXPORT_HEIGHT);drawExportStamp(ctx);drawExportLegend(ctx);drawExportAttribution(ctx);const blob=await new Promise((resolve,reject)=>final.toBlob(result=>result?resolve(result):reject(new Error('PNG encoder returned no data.')),'image/png'));const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=state.exportProduct==='change'?`drought_change_${state.payload.cycleDate}.png`:(state.exportProduct==='recommendations'?`drought_recommendations_${state.payload.cycleDate}.png`:`proposed_drought_updates_${state.payload.cycleDate}.png`);document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);showToast(`PNG exported · ${EXPORT_WIDTH*EXPORT_SCALE}×${EXPORT_HEIGHT*EXPORT_SCALE}`);}catch(error){console.error(error);showToast(`Export failed: ${error.message}`,true,9000);}finally{dom.exportDownloadBtn.disabled=false;dom.exportDownloadBtn.textContent='Download PNG';}}
 </script>
 </body>
 </html>
